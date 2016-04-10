@@ -1,6 +1,10 @@
+
 body {
   padding-top: 20px;
+  font-family: 'Lora', serif;
 }
+
+#map {height: 420px;}
 
 .footer {
   padding-top: 40px;

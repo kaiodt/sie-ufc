@@ -1,0 +1,25 @@
+{% include 'header.html' %}
+
+{% block content %}
+<br>
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8">
+            <h2>{{ noticia.titulo }}</h2>
+        </div>
+    </div>
+    <p>Publicado em {{ noticia.data.day }}/{{ noticia.data.month }}/{{ noticia.data.year }}</p>
+    <br>
+    <div class="row">
+        <div class="col-lg-8">
+            <p id='texto'>{{ noticia.texto }}</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+<script>
+    $("#texto").html(($("#texto").text()));
+</script>
+
+{% include 'footer.html' %}

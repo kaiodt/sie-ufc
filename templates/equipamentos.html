@@ -1,0 +1,31 @@
+
+{% include 'header.html' %}
+
+{% block content %}
+<div class="container">
+    <h1>Hello</h1>
+
+    <div id="map"></div>
+</div>
+{% endblock %}
+
+<script type="text/javascript">
+    var map = L.map('map').setView([-3.745376, -38.575800], 14);
+    
+    L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+        attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
+        maxZoom: 18,
+        id: 'mapbox.streets',
+        accessToken: 'pk.eyJ1IjoibHVjYXNzbSIsImEiOiJjaW05cDlmMXYwMDFidzhtM3JzN291dzZqIn0.WC0WGjp2FzN0VNOZ3JHjnQ'
+    }).addTo(map);
+
+    {% for sub in subs %}
+
+        var marker = L.marker([{{sub.pos_x}}, {{sub.pos_y}}, 17]).addTo(map);
+        marker.bindPopup("<b>{{ sub.nome }}</b><br>{{ sub.potencia }}.");
+
+    {% endfor %}
+</script>
+
+
+{% include 'footer.html' %}
