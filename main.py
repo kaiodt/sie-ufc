@@ -59,6 +59,34 @@ class Usuario(UserMixin, db.Model):
     def __repr__(self):
         return '<Usuario: %r>' % self.nome
 
+class Campus(db.Model):
+    __tablename__ = 'campus'
+    id = db.Column(db.Integer, primary_key=True)
+    nome = db.Column(db.String(64), unique=True)
+    unidades = db.relationship('Unidade', backref='campus', lazy='dynamic')
+    def __repr__(self):
+        return '<Campus %r>' % self.nome
+
+
+class Unidade(db.Model):
+    __tablename__ = 'unidades'
+    id = db.Column(db.Integer, primary_key=True)
+    nome = db.Column(db.String(64))
+    campus_id = db.Column(db.Integer, db.ForeignKey('campus.id'))
+
+    def __repr__(self):
+        return '<Unidade %r>' % self.nome
+
+
+class Departamento(db.Model):
+    __tablename__ = 'departamentos'
+    id = db.Column(db.Integer, primary_key=True)
+    nome = db.Column(db.String(64))
+    unidade_id = db.Column(db.Integer, db.ForeignKey('unidades.id'))
+
+    def __repr__(self):
+        return '<Departamento %r>' % self.nome
+
 
 class Equipamento(db.Model):
     __tablename__ = 'equipamentos'
@@ -80,6 +108,14 @@ class Subestacao(Equipamento):
 
     def __repr__(self):
         return '<Subestacao %r>' % self.nome
+
+
+class BancoDeCapacitores(Equipamento):
+    __tablename__ = 'bancodecapacitores'
+    id = db.Column(db.Integer, db.ForeignKey('equipamentos.id'), primary_key=True)
+    potencia = db.Column(db.String(15))
+    celulas = db.Column(db.Integer)
+
 
 class Noticia(db.Model):
     __tablename__ = 'noticias'
@@ -112,8 +148,9 @@ class MyModelView(ModelView):
         return 'Acesso Negado!' 
 
 admin.add_view(MyModelView(Usuario, db.session))
-admin.add_view(MyModelView(Equipamento, db.session))
-admin.add_view(MyModelView(Subestacao, db.session))
+admin.add_view(MyModelView(Subestacao, db.session, category='Equipamentos'))
+admin.add_view(MyModelView(Campus, db.session, category='Localizacao'))
+admin.add_view(MyModelView(Unidade, db.session, category='Localizacao'))
 admin.add_view(MyModelView(Noticia, db.session))
 
 
