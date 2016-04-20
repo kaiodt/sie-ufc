@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <meta name="description" content="D3byEX 4.1" />
+    <meta charset="utf-8">
+</head>
+<body>
+    <script>
+        var data = Array();
+        {% for m in medidas %}
+            data.push({{ m.valor / 10 }});
+        {% endfor %}
+
+        var barWidth = 20, barPadding = 3;
+        var maxValue = d3.max(data);
+
+        var mainGroup = d3.select('body')
+            .append('svg')
+            .attr({ width: 1000, height: 250 })
+            .append('g');
+
+        function xloc(d, i) { return i * (barWidth + barPadding); }
+        function yloc(d) { return maxValue - d; }
+        function translator(d, i) {
+            return "translate(" + xloc(d, i) + "," + yloc(d) + ")";
+        }
+
+        mainGroup.selectAll("rect")
+            .data(data)
+            .enter()
+            .append('rect')
+            .attr({
+                fill: 'steelblue',
+                transform: translator,
+                width: barWidth,
+                height: function (d) { return d; }
+            });
+    </script>
+</body>
+</html>

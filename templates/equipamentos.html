@@ -3,28 +3,54 @@
 
 {% block content %}
 <div class="container">
-    <h1>Hello</h1>
+    <h1>Mapa de Equipamentos Elétricos da UFC</h1>
 
     <div id="map"></div>
 </div>
 {% endblock %}
 
 <script type="text/javascript">
+
+    var greenIcon = new L.Icon({
+      iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/images/marker-shadow.png',
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41]
+    });
+
+    var subs = Array();
+
+    {% for sub in subs %}
+        subs.push(L.marker([{{ sub.pos_x }}, {{ sub.pos_y }}]).bindPopup("{{ sub.nome }}"));
+    {% endfor %}
+
+    var subs_layer = L.layerGroup(subs);
+
+    var rels = Array();
+
+    {% for rel in rels %}
+            rels.push(L.marker([{{ rel.pos_x }}, {{ rel.pos_y }}], {icon: greenIcon}).bindPopup("{{ rel.nome }}"));
+    {% endfor %}
+    
+    var rels_layer = L.layerGroup(rels);    
+
+    var layers = {
+        "Subestacoes": subs_layer,
+        "Religadores": rels_layer,
+    };
+
     var map = L.map('map').setView([-3.745376, -38.575800], 14);
     
     L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
         attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
         maxZoom: 18,
         id: 'mapbox.streets',
-        accessToken: 'pk.eyJ1IjoibHVjYXNzbSIsImEiOiJjaW05cDlmMXYwMDFidzhtM3JzN291dzZqIn0.WC0WGjp2FzN0VNOZ3JHjnQ'
+        accessToken: 'pk.eyJ1IjoibHVjYXNzbSIsImEiOiJjaW05cDlmMXYwMDFidzhtM3JzN291dzZqIn0.WC0WGjp2FzN0VNOZ3JHjnQ',
     }).addTo(map);
+    L.control.layers(null, layers).addTo(map);
 
-    {% for sub in subs %}
-
-        var marker = L.marker([{{sub.pos_x}}, {{sub.pos_y}}, 17]).addTo(map);
-        marker.bindPopup("<b>{{ sub.nome }}</b><br>{{ sub.potencia }}.");
-
-    {% endfor %}
 </script>
 
 

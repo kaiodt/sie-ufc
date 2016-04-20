@@ -90,3 +90,15 @@ body {
     padding-left: 0;
   }
 }
+
+/* My Styles */
+
+.artigo{
+  margin: 0 auto;
+  width: 60%;
+}
+
+#texto{
+  text-align: justify;
+  text-justify: inter-word;
+}

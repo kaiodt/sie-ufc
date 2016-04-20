@@ -4,6 +4,23 @@ body {
   background-color: #eee;
 }
 
+.brasao{
+  max-width: 330px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto
+}
+
+.brasao h2{
+  text-align: center;
+}
+
+.brasao img{
+  display: block;
+  margin-left: auto;
+  margin-right: auto 
+}
+
 .container{
   max-width: 430px;
   padding: 15px;

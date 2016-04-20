@@ -27,6 +27,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://ybygigmtetzayp:d-nF5hqgyp4h5
 # app.config['SQLALCHEMY_DATABASE_URI'] = ''
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 app.config['SECRET_KEY'] = 'Y2wA&&ybkra37gDqC9cLzeH3iit4OhM!cLuJrvTjYFO-Ae]KNM'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 
 # configuracao do sistema de login
 login_manager = LoginManager()
@@ -72,6 +73,7 @@ class Unidade(db.Model):
     __tablename__ = 'unidades'
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(64))
+    departamentos = db.relationship('Departamento', backref='unidade', lazy='dynamic')
     campus_id = db.Column(db.Integer, db.ForeignKey('campus.id'))
 
     def __repr__(self):
@@ -88,11 +90,37 @@ class Departamento(db.Model):
         return '<Departamento %r>' % self.nome
 
 
+class UnidadeConsumidora(db.Model):
+    __tablename__ = 'unidadeconsumidora'
+    id = db.Column(db.Integer, primary_key=True)
+    nome = db.Column(db.String(64))
+
+    pos_x = db.Column(db.Float)
+    pos_y = db.Column(db.Float)
+
+    medidas = db.relationship('Medida', backref='unid_cons', lazy='dynamic')
+    
+    def __repr__(self):
+        return '<Unidade Consumidora %r>' % self.nome
+
+class Medida(db.Model):
+    __tablename__ = 'medidas'
+    id = db.Column(db.Integer, primary_key=True)
+    unidade_id = db.Column(db.Integer, db.ForeignKey('unidadeconsumidora.id'))
+    data = db.Column(db.Date)
+    consumo = db.Column(db.Float)
+    valor = db.Column(db.Float)
+
+    def __repr__(self):
+        return '<Medida %r>' % self.data
+
+
 class Equipamento(db.Model):
     __tablename__ = 'equipamentos'
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(64), unique=True)
     referencia = db.Column(db.String(64), unique=True)
+    
     pos_x = db.Column(db.Float)
     pos_y = db.Column(db.Float)
 
@@ -109,6 +137,13 @@ class Subestacao(Equipamento):
     def __repr__(self):
         return '<Subestacao %r>' % self.nome
 
+class Religador(Equipamento):
+    __tablename__ = 'religadores'
+    id = db.Column(db.Integer, db.ForeignKey('equipamentos.id'), primary_key=True)
+    tensao = db.Column(db.String(10))
+
+    def __repr__(self):
+        return '<Religador %r>' % self.nome
 
 class BancoDeCapacitores(Equipamento):
     __tablename__ = 'bancodecapacitores'
@@ -116,6 +151,8 @@ class BancoDeCapacitores(Equipamento):
     potencia = db.Column(db.String(15))
     celulas = db.Column(db.Integer)
 
+    def __repr__(self):
+        return '<Banco de Capacitor %r>' % self.nome
 
 class Noticia(db.Model):
     __tablename__ = 'noticias'
@@ -134,7 +171,7 @@ class Solicitacao(db.Model):
     descricao = db.Column(db.Text)
     estado = db.Column(db.String)
     data_abertura = db.Column(db.Date, default=datetime.date.today())
-    data_encerramento = db.Column(db.Date, default=datetime.date.today())
+    data_encerramento = db.Column(db.Date)
 
     def __repr__(self):
         return '<Solicitacao %r>' % self.titulo
@@ -149,8 +186,12 @@ class MyModelView(ModelView):
 
 admin.add_view(MyModelView(Usuario, db.session))
 admin.add_view(MyModelView(Subestacao, db.session, category='Equipamentos'))
+admin.add_view(MyModelView(Religador, db.session, category='Equipamentos'))
 admin.add_view(MyModelView(Campus, db.session, category='Localizacao'))
 admin.add_view(MyModelView(Unidade, db.session, category='Localizacao'))
+admin.add_view(MyModelView(UnidadeConsumidora, db.session, category='Consumo'))
+admin.add_view(MyModelView(Medida, db.session, category='Consumo'))
+admin.add_view(MyModelView(Solicitacao, db.session))
 admin.add_view(MyModelView(Noticia, db.session))
 
 
@@ -207,7 +248,30 @@ def noticia(id):
 @app.route('/equipamentos')
 def equipamentos():
     subs = Subestacao.query.all()
-    return render_template('equipamentos.html', subs=subs)
+    rels = Religador.query.all()
+    return render_template('equipamentos.html', subs=subs, rels=rels)
+
+@app.route('/solicitacoes')
+def solicitacoes():
+    sol = Solicitacao.query.all()
+    return render_template('solicitacoes.html', solicitacoes=sol)
+
+@app.route('/consumo')
+def consumo():
+    unidades_consumidoras = UnidadeConsumidora.query.all()
+    return render_template('consumo.html', unidades=unidades_consumidoras)
+
+@app.route('/consumo/<id>')
+def consumo_dados(id):
+    unidade = UnidadeConsumidora.query.filter_by(id=id).first()
+    medidas = unidade.medidas
+    return render_template('consumo-dados.html', medidas=medidas)
+
+@app.route('/graph')
+def graph():
+    u = UnidadeConsumidora.query.first()
+    medidas = u.medidas
+    return render_template('teste-grafico.html', medidas=medidas)
 
 if __name__=='__main__':
     manager.run()
