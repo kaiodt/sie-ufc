@@ -150,6 +150,7 @@ class BancoDeCapacitores(Equipamento):
     id = db.Column(db.Integer, db.ForeignKey('equipamentos.id'), primary_key=True)
     potencia = db.Column(db.String(15))
     celulas = db.Column(db.Integer)
+    # estado = db.Column(db.String(20))
 
     def __repr__(self):
         return '<Banco de Capacitor %r>' % self.nome
@@ -187,6 +188,7 @@ class MyModelView(ModelView):
 admin.add_view(MyModelView(Usuario, db.session))
 admin.add_view(MyModelView(Subestacao, db.session, category='Equipamentos'))
 admin.add_view(MyModelView(Religador, db.session, category='Equipamentos'))
+admin.add_view(MyModelView(BancoDeCapacitores, db.session, category='Equipamentos'))
 admin.add_view(MyModelView(Campus, db.session, category='Localizacao'))
 admin.add_view(MyModelView(Unidade, db.session, category='Localizacao'))
 admin.add_view(MyModelView(UnidadeConsumidora, db.session, category='Consumo'))
@@ -249,7 +251,11 @@ def noticia(id):
 def equipamentos():
     subs = Subestacao.query.all()
     rels = Religador.query.all()
-    return render_template('equipamentos.html', subs=subs, rels=rels)
+    caps = BancoDeCapacitores.query.all()
+    return render_template('equipamentos.html',
+                           subs=subs,
+                           rels=rels,
+                           caps=caps)
 
 @app.route('/solicitacoes')
 def solicitacoes():
@@ -265,7 +271,7 @@ def consumo():
 def consumo_dados(id):
     unidade = UnidadeConsumidora.query.filter_by(id=id).first()
     medidas = unidade.medidas
-    return render_template('consumo-dados.html', medidas=medidas)
+    return render_template('consumo-dados.html', medidas=medidas, unidade=unidade)
 
 @app.route('/graph')
 def graph():

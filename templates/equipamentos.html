@@ -36,9 +36,19 @@
     
     var rels_layer = L.layerGroup(rels);    
 
+
+    var caps = Array();
+
+    {% for cap in caps %}
+            caps.push(L.marker([{{ cap.pos_x }}, {{ cap.pos_y }}], {icon: greenIcon}).bindPopup("{{ cap.nome }}"));
+    {% endfor %}
+    
+    var caps_layer = L.layerGroup(caps);
+
     var layers = {
         "Subestacoes": subs_layer,
         "Religadores": rels_layer,
+        "Banco de Capacitores": caps_layer,
     };
 
     var map = L.map('map').setView([-3.745376, -38.575800], 14);

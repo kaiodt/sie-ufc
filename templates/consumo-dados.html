@@ -1,41 +1,75 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <script src="http://d3js.org/d3.v3.min.js"></script>
-    <meta name="description" content="D3byEX 4.1" />
-    <meta charset="utf-8">
-</head>
-<body>
-    <script>
-        var data = Array();
-        {% for m in medidas %}
-            data.push({{ m.valor / 10 }});
-        {% endfor %}
+{% include 'header.html' %}
 
-        var barWidth = 20, barPadding = 3;
-        var maxValue = d3.max(data);
 
-        var mainGroup = d3.select('body')
-            .append('svg')
-            .attr({ width: 1000, height: 250 })
-            .append('g');
+{% block content %}
+    <div class="container">
+        <h2>Informações de Consumo</h2>
+        <br>
+        <canvas id="myChart" width="600" height="200"></canvas>
+        <br>
+        <h2>{{ unidade.nome }}</h2>
+        <br>
+        <h3>Medidas</h3>
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="list-group">
+                {% for med in unidade.medidas %}
+                    <a href="#" class="list-group-item">
+                    <h4 class="list-group-item-heading">
+                        {{ med.data }}
+                    </h4>
+                    <br>
+                    <p class="list-group-item-heading">
+                        Consumo: {{ med.consumo }} - Valor: {{ med.valor }}
+                    </p>
+                    </a>
+                {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
 
-        function xloc(d, i) { return i * (barWidth + barPadding); }
-        function yloc(d) { return maxValue - d; }
-        function translator(d, i) {
-            return "translate(" + xloc(d, i) + "," + yloc(d) + ")";
-        }
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.0.1/Chart.min.js"></script>
 
-        mainGroup.selectAll("rect")
-            .data(data)
-            .enter()
-            .append('rect')
-            .attr({
-                fill: 'steelblue',
-                transform: translator,
-                width: barWidth,
-                height: function (d) { return d; }
-            });
-    </script>
-</body>
-</html>
+<script>
+
+    var mydata = Array();
+    {% for m in medidas %}
+        mydata.push({{ m.valor / 10}});
+    {% endfor %}
+
+
+    var data = {
+        labels: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"],
+
+        datasets: [
+            {
+                label: "Medidas",
+                backgroundColor: "rgba(20,129,227, 0.7)",
+                
+                data: mydata
+            }
+        ]
+    };
+
+    var config = {
+        type: "bar",
+        data: data,
+        options: {
+            scales: {
+                yAxes: [{
+                        ticks: {
+                            beginAtZero:true,
+                            max:500,
+                        }
+                    }]
+            }
+        } 
+    }
+
+    var ctx = $("#myChart").get(0).getContext("2d");
+    var myNewChart = new Chart(ctx, config);
+</script>
+
+{% include 'footer.html' %}
