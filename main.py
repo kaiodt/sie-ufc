@@ -18,13 +18,17 @@ from flask_admin.contrib.sqla import ModelView
 
 from werkzeug import generate_password_hash, check_password_hash
 
-import datetime
+import os, datetime
 
 app = Flask(__name__)
 admin = Admin(app, name='sie-ufc', template_mode='bootstrap3')
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://ybygigmtetzayp:d-nF5hqgyp4h52VuciHozv8pPF@ec2-54-225-111-9.compute-1.amazonaws.com:5432/d6sbmnjm5hu4v8'
+basedir = os.path.abspath(os.path.dirname(__file__))
+
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://ybygigmtetzayp:d-nF5hqgyp4h52VuciHozv8pPF@ec2-54-225-111-9.compute-1.amazonaws.com:5432/d6sbmnjm5hu4v8'
 # app.config['SQLALCHEMY_DATABASE_URI'] = ''
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'info.db')
+
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 app.config['SECRET_KEY'] = 'Y2wA&&ybkra37gDqC9cLzeH3iit4OhM!cLuJrvTjYFO-Ae]KNM'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
