@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+
+{% block page_title %}Equipamentos{% endblock %}
+
+
+{% block head %}
+	{{ super() }}
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/principal/equipamentos.css') }}">
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.2/dist/leaflet.css"/>
+{% endblock %}
+
+
+{% block scripts %}
+	{{ super() }}
+	<script src="https://unpkg.com/leaflet@1.0.2/dist/leaflet.js"></script>
+	<script type="text/javascript" src="{{ url_for('static', filename='js/principal/equipamentos.js') }}"></script>
+{% endblock %}
+
+
+{% set active_tab = 'equipamentos' %}
+
+
+{% block page_content %}
+	<div class="page-header">
+		<h1>Mapa de Equipamentos</h1>
+	</div>
+
+	<div id="map"></div>
+{% endblock %}

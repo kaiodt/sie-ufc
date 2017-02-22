@@ -87,3 +87,8 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# Outros (Kaio)
+gerar_requerimentos.sh
+delete_requirements.txt
+extensoes.txt
