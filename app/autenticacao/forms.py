@@ -1,6 +1,5 @@
 # coding: utf-8
 
-
 ################################################################################
 ## SIE - UFC
 ################################################################################
@@ -17,6 +16,7 @@ from ..models import Usuario
 
 
 ########## Formulários ##########
+
 
 # Formulário Base (Com traduções)
 class FormBase(FlaskForm):
@@ -41,8 +41,8 @@ class FormLogin(FormBase):
 # Cadastro de Usuário
 class FormCadastroUsuario(FormBase):
     nome = StringField('Nome', validators=[InputRequired(),
-                                           Length(1, 64),
-                                           Regexp(u'[A-Za-z ÁÉÍÓÚÂÊÎÔÛÃÕÇáéíóúâêîôûãõç]*$', 0)])
+                               Length(1, 64),
+                               Regexp(u'[A-Za-z ÁÉÍÓÚÂÊÎÔÛÃÕÇáéíóúâêîôûãõç]*$', 0)])
 
     email = StringField('Email', validators=[InputRequired(),
                                              Length(1, 64),

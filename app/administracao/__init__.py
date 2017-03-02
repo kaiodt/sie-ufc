@@ -1,6 +1,5 @@
 # coding: utf-8
 
-
 ################################################################################
 ## SIE - UFC
 ################################################################################
@@ -14,6 +13,7 @@ from flask_login import current_user
 
 ########## View da Página Inicial do Painel de Administração ##########
 
+
 class HomeView(AdminIndexView):
     # Restringir acesso apenas para administradores e cadastradores
     def is_accessible(self):
@@ -25,6 +25,7 @@ class HomeView(AdminIndexView):
 
 
 ########## Criação da Instância do Flask Admin ##########
+
 
 admin = Admin(index_view=HomeView(url='/administracao'))
 admin.name = 'SIE-UFC'

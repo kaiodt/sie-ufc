@@ -1,6 +1,5 @@
 # coding: utf-8
 
-
 ################################################################################
 ## SIE - UFC
 ################################################################################
@@ -8,68 +7,133 @@
 ################################################################################
 
 
-from flask_admin.contrib.sqla.filters import BaseSQLAFilter, FilterEqual, FilterNotEqual, \
-                                             FilterInList, FilterNotInList
-
-from . import admin
-from .. import db
+import datetime
+from flask_admin.contrib.sqla.filters import *
 
 
 ########## Funções Auxiliares ##########
 
-# Gera as opções dos filtros via acesso ao banco de dados
-def gerar_opcoes(coluna):
-    with admin.app.app_context():
-        return [(opcao[0], opcao[0]) for opcao in db.session.query(coluna).all()]
+
+# Gera série de filtros para campos do tipo string
+def FiltrosStrings(coluna, nome):
+    return [FilterLike(column=coluna, name=nome),
+            FilterNotLike(column=coluna, name=nome),
+            FilterEqual(column=coluna, name=nome),
+            FilterNotEqual(column=coluna, name=nome),
+            FilterInList(column=coluna, name=nome),
+            FilterNotInListMod(column=coluna, name=nome),
+            FilterEmpty(column=coluna, name=nome)]
 
 
-# Gera série de filtros para determinado campo do modelo
-def FiltroOpcoes(coluna, nome):
-    return [FiltroIgual(column=coluna, name=nome),
-            FiltroDiferente(column=coluna, name=nome),
-            FiltroNaLista(column=coluna, name=nome),
-            FiltroForaDaLista(column=coluna, name=nome)]
+# Gera série de filtros para campos do tipo inteiro
+def FiltrosInteiros(coluna, nome):
+    return [IntEqualFilter(column=coluna, name=nome),
+            IntNotEqualFilter(column=coluna, name=nome),
+            IntGreaterFilter(column=coluna, name=nome),
+            IntSmallerFilter(column=coluna, name=nome),
+            IntInListFilter(column=coluna, name=nome),
+            IntNotInListFilterMod(column=coluna, name=nome),
+            FilterEmpty(column=coluna, name=nome)]
 
 
-########## Filtros ##########
-
-# Igual a uma das opções fornecidas
-class FiltroIgual(FilterEqual):
-    def __init__(self, *args, **kwargs):
-        super(FiltroIgual, self).__init__(*args, **kwargs)      
-        self.options = gerar_opcoes(self.column)
-
-    def operation(self):
-        return 'igual'
-
-        
-# Diferente de uma das opções fornecidas
-class FiltroDiferente(FilterNotEqual):
-    def __init__(self, *args, **kwargs):
-        super(FiltroDiferente, self).__init__(*args, **kwargs)
-        self.options = gerar_opcoes(self.column)
-
-    def operation(self):
-        return 'diferente'
+# Gera série de filtros para campos do tipo float
+def FiltrosFloats(coluna, nome):
+    return [FloatEqualFilter(column=coluna, name=nome),
+            FloatNotEqualFilter(column=coluna, name=nome),
+            FloatGreaterFilter(column=coluna, name=nome),
+            FloatSmallerFilter(column=coluna, name=nome),
+            FloatInListFilter(column=coluna, name=nome),
+            FloatNotInListFilterMod(column=coluna, name=nome),
+            FilterEmpty(column=coluna, name=nome)]
 
 
-# Igual a alguma opção em uma lista das opções fornecidas
-class FiltroNaLista(FilterInList):
-    def __init__(self, *args, **kwargs):
-        super(FiltroNaLista, self).__init__(*args, **kwargs)
-        self.options = gerar_opcoes(self.column)
+# Gera série de filtros para campos do tipo data
+def FiltrosDatas(coluna, nome):
+    return [DateEqualFilterMod(column=coluna, name=nome),
+            DateNotEqualFilterMod(column=coluna, name=nome),
+            DateGreaterFilterMod(column=coluna, name=nome),
+            DateSmallerFilterMod(column=coluna, name=nome),
+            DateBetweenFilterMod(column=coluna, name=nome),
+            DateNotBetweenFilterMod(column=coluna, name=nome),
+            FilterEmpty(column=coluna, name=nome)]
 
-    def operation(self):
-        return 'na lista'
+
+########## Filtros Modificados ##########
 
 
-# Diferente de todas as opções em uma lista das opções fornecidas
-class FiltroForaDaLista(FilterNotInList):
-    def __init__(self, *args, **kwargs):
-        super(FiltroForaDaLista, self).__init__(*args, **kwargs)
-        self.options = gerar_opcoes(self.column)
+# Filtros tipo fora da lista (Problema na tradução)
 
+class FilterNotInListMod(FilterNotInList):
     def operation(self):
         return 'fora da lista'
 
-    
+
+class IntNotInListFilterMod(IntNotInListFilter):
+    def operation(self):
+        return 'fora da lista'
+
+
+class FloatNotInListFilterMod(FloatNotInListFilter):
+    def operation(self):
+        return 'fora da lista'
+
+
+# Filtros para tipo data (Problema no formato)
+
+class DateEqualFilterMod(DateEqualFilter):
+    def clean(self, value):
+        return datetime.datetime.strptime(value, '%d.%m.%Y').date()
+
+
+class DateNotEqualFilterMod(DateNotEqualFilter):
+    def clean(self, value):
+        return datetime.datetime.strptime(value, '%d.%m.%Y').date()
+
+
+class DateGreaterFilterMod(DateGreaterFilter):
+    def clean(self, value):
+        return datetime.datetime.strptime(value, '%d.%m.%Y').date()
+
+
+class DateSmallerFilterMod(DateSmallerFilter):
+    def clean(self, value):
+        return datetime.datetime.strptime(value, '%d.%m.%Y').date()
+
+
+class DateBetweenFilterMod(DateBetweenFilter):
+    def clean(self, value):
+        return [datetime.datetime.strptime(range, '%d.%m.%Y').date()
+                for range in value.split(' e ')]
+
+    def validate(self, value):
+        try:
+            value = [datetime.datetime.strptime(range, '%d.%m.%Y').date()
+                     for range in value.split(' e ')]
+            # if " to " is missing, fail validation
+            # sqlalchemy's .between() will not work if end date is before start date
+            if (len(value) == 2) and (value[0] <= value[1]):
+                return True
+            else:
+                return False
+        except ValueError:
+            return False
+
+
+class DateNotBetweenFilterMod(DateNotBetweenFilter):
+    def clean(self, value):
+        return [datetime.datetime.strptime(range, '%d.%m.%Y').date()
+                for range in value.split(' e ')]
+
+    def validate(self, value):
+        try:
+            value = [datetime.datetime.strptime(range, '%d.%m.%Y').date()
+                     for range in value.split(' e ')]
+            # if " to " is missing, fail validation
+            # sqlalchemy's .between() will not work if end date is before start date
+            if (len(value) == 2) and (value[0] <= value[1]):
+                return True
+            else:
+                return False
+        except ValueError:
+            return False
+

@@ -1,6 +1,5 @@
 # coding: utf-8
 
-
 ################################################################################
 ## SIE - UFC
 ################################################################################
@@ -15,6 +14,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 
 ########## Classes de Configuração ##########
+
 
 # Configuração Geral
 class Config:
@@ -55,6 +55,7 @@ class ConfigProducao(Config):
 
 
 ########## Dicionário para Seleção de Configuração ##########
+
 
 modos_configuracao = {
     'desenvolvimento': ConfigDesenvolvimento,
