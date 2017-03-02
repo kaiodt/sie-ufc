@@ -31,4 +31,5 @@ def equipamentos():
 @principal.route('/manutencao')
 def manutencao():
     return render_template('principal/manutencao.html')
+#TESTE
 
