@@ -9,6 +9,7 @@
 {% block head %}
 	{{ super() }}
 	{% include 'administracao/head.html' %}
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/administracao/listar.css') }}">
 {% endblock %}
 
 

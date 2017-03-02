@@ -1,6 +1,5 @@
 # coding: utf-8
 
-
 ################################################################################
 ## SIE - UFC
 ################################################################################
@@ -19,6 +18,7 @@ from ..util.email import enviar_email
 
 
 ########## Rotas ##########
+
 
 # Redirecionar usuários que fizeram login, mas não confirmaram conta
 @autenticacao.before_app_request

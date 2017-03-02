@@ -1,6 +1,5 @@
 # coding: utf-8
 
-
 ################################################################################
 ## SIE - UFC
 ################################################################################
@@ -20,6 +19,7 @@ from config import modos_configuracao
 
 ########## Instanciação de Extensões ##########
 
+
 db = SQLAlchemy()
 bootstrap = Bootstrap()
 login_manager = LoginManager()
@@ -28,6 +28,7 @@ babel = Babel(default_locale='pt_BR')
 
 
 ########## Configuração de Extensões ##########
+
 
 # Sistema de Login
 
@@ -38,6 +39,7 @@ login_manager.login_message_category = 'warning'
 
 
 ########## Application Factory ##########
+
 
 # Cria uma instância da aplicação em determinado modo de configuração
 

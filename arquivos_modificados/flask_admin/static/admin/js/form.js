@@ -367,12 +367,30 @@
             case 'select2-ajax':
                 processAjaxWidget($el, name);
                 return true;
+                  
+            // ****************************************************************************
+            // ****************************************************************************
+            
+            // MODIFICADO
+
             case 'datepicker':
                 $el.daterangepicker({
                   timePicker: false,
                   showDropdowns: true,
                   singleDatePicker: true,
-                  format: $el.attr('data-date-format')
+                  format: $el.attr('data-date-format'),
+                  locale: {
+                    applyLabel: 'Aplicar',
+                    cancelLabel: 'Cancelar',
+                    fromLabel: 'De',
+                    toLabel: 'Até',
+                    weekLabel: 'S',
+                    customRangeLabel: 'Limites Personalizados',
+                    daysOfWeek: [ 'Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb' ],
+                    monthNames: [ 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 
+                                  'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez' ],
+                    firstDay: 1
+                  }
                 },
                 function(start, end) {
                     $('.filter-val').trigger("change");
@@ -382,13 +400,54 @@
                 $el.daterangepicker({
                   timePicker: false,
                   showDropdowns: true,
-                  separator: ' to ',
-                  format: $el.attr('data-date-format')
+                  separator: ' e ',
+                  format: $el.attr('data-date-format'),
+                  locale: {
+                    applyLabel: 'Aplicar',
+                    cancelLabel: 'Cancelar',
+                    fromLabel: 'De',
+                    toLabel: 'Até',
+                    weekLabel: 'S',
+                    customRangeLabel: 'Limites Personalizados',
+                    daysOfWeek: [ 'Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb' ],
+                    monthNames: [ 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 
+                                  'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez' ],
+                    firstDay: 1
+                  }                  
                 },
                 function(start, end) {
                     $('.filter-val').trigger("change");
                 });
                 return true;
+
+            // ORIGINAL
+
+            // case 'datepicker':
+            //     $el.daterangepicker({
+            //       timePicker: false,
+            //       showDropdowns: true,
+            //       singleDatePicker: true,
+            //       format: $el.attr('data-date-format')
+            //     },
+            //     function(start, end) {
+            //         $('.filter-val').trigger("change");
+            //     });
+            //     return true;
+            // case 'daterangepicker':
+            //     $el.daterangepicker({
+            //       timePicker: false,
+            //       showDropdowns: true,
+            //       separator: ' to ',
+            //       format: $el.attr('data-date-format'),                 
+            //     },
+            //     function(start, end) {
+            //         $('.filter-val').trigger("change");
+            //     });
+            //     return true;
+
+            // ****************************************************************************
+            // ****************************************************************************
+
             case 'datetimepicker':
                 $el.daterangepicker({
                   timePicker: true,

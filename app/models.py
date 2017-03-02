@@ -1,6 +1,5 @@
 # coding: utf-8
 
-
 ################################################################################
 ## SIE - UFC
 ################################################################################
@@ -20,6 +19,7 @@ from . import db, login_manager
 
 ########## Definição de Permissões dos Usuários ##########
 
+
 class Permissao:
     SOLICITAR = 0x01
     CADASTRAR = 0x02
@@ -27,6 +27,7 @@ class Permissao:
 
 
 ########## Modelos de Acesso ao Sistema ##########
+
 
 # Cargos (Tipos de Usuários)
 class Cargo(db.Model):
@@ -221,6 +222,7 @@ class UsuarioAnonimo(AnonymousUserMixin):
 
 ########## Configurações Adicionais do Sistema de Login ##########
 
+
 # Definir usuário anônimo
 login_manager.anonymous_user = UsuarioAnonimo
 
@@ -231,6 +233,7 @@ def load_user(id_usuario):
 
 
 ########## Modelos do Sistema ##########
+
 
 # Instituição (Topo da Hierarquia)
 class Instituicao(db.Model):
@@ -364,8 +367,9 @@ class AmbienteInterno(Ambiente):
             (self.nome, self.bloco.nome, self.bloco.departamento.nome)
 
     def __str__(self):
-        return '%s [%s - %s]' % \
-            (self.nome, self.bloco.nome, self.bloco.departamento.nome)
+        return '%s - %s - %s - %s - %s' % \
+            (self.nome, self.bloco.nome, self.bloco.departamento.nome,
+             self.bloco.departamento.centro.nome, self.bloco.departamento.centro.campus.nome)
 
 
 # Ambientes Externos (Subclasse de Ambientes)
@@ -459,7 +463,7 @@ class Equipamento(db.Model):
             (self.tipo_equipamento, self.tombamento, self.ambiente)
 
     def __str__(self):
-        return '%s: %d [%s]' % \
+        return '%s %d [%s]' % \
             (self.tipo_equipamento, self.tombamento, self.ambiente)
 
 
@@ -487,15 +491,30 @@ class Manutencao(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     num_ordem_servico = db.Column(db.Integer, nullable=False)
     id_equipamento = db.Column(db.Integer, db.ForeignKey('equipamentos.id'))
-    data = db.Column(db.Date, index=True, nullable=False)
+    data_abertura = db.Column(db.Date, index=True, nullable=False)
+    data_conclusao = db.Column(db.Date, index=True)
     tipo_manutencao = db.Column(db.String(64), index=True)
     descricao_servico = db.Column(db.Text)
     status = db.Column(db.String(64), index=True)
 
 
     def __repr__(self):
-        return '<Manutenção: %s em %s>' % (self.equipamento, self.data.strftime("%d/%m/%Y"))
+        if self.data_conclusao:
+            data = self.data_conclusao
+        else:
+            data = self.data_abertura
+
+        return '<Manutenção: %d [%s %d] em %s>' % (self.num_ordem_servico, 
+            self.equipamento.tipo_equipamento, self.equipamento.tombamento,
+            data.strftime("%d.%m.%Y"))
 
     def __str__(self):
-        return '%s em %s' % (self.equipamento, self.data.strftime("%d/%m/%Y"))
+        if self.data_conclusao:
+            data = self.data_conclusao
+        else:
+            data = self.data_abertura
+
+        return '%d [%s %d] em %s' % (self.num_ordem_servico, 
+            self.equipamento.tipo_equipamento, self.equipamento.tombamento,
+            data.strftime("%d.%m.%Y"))
 

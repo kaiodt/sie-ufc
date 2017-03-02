@@ -1,6 +1,5 @@
 # coding: utf-8
 
-
 ################################################################################
 ## SIE - UFC
 ################################################################################
@@ -15,6 +14,7 @@ from . import principal
 
 ########## Rotas ##########
 
+
 # Página Inicial
 @principal.route('/')
 def home():
@@ -25,4 +25,10 @@ def home():
 @principal.route('/equipamentos')
 def equipamentos():
     return render_template('principal/equipamentos.html')
+
+
+# Página de Controle de Manutenções
+@principal.route('/manutencao')
+def manutencao():
+    return render_template('principal/manutencao.html')
 

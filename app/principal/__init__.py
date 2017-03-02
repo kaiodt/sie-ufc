@@ -1,6 +1,5 @@
 # coding: utf-8
 
-
 ################################################################################
 ## SIE - UFC
 ################################################################################
@@ -13,6 +12,7 @@ from flask import Blueprint
 
 ########## Criação do Blueprint ##########
 
+
 principal = Blueprint('principal', __name__)
 
 # Importação de views
@@ -21,6 +21,7 @@ from . import views, errors
 
 
 ########## Disponibilação de Permissões nos Templates ##########
+
 
 from ..models import Permissao
 
