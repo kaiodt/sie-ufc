@@ -8,7 +8,7 @@
 
 
 from datetime import date
-from flask import request
+from flask import request, flash
 from flask_wtf import FlaskForm
 from flask_admin.form.fields import Select2Field, Select2TagsField
 from flask_admin.form.widgets import DatePickerWidget
@@ -17,7 +17,8 @@ from flask_admin.contrib.geoa.fields import GeoJSONField
 from wtforms import StringField, PasswordField, BooleanField, IntegerField, DecimalField, \
                     SubmitField, TextAreaField, DateField
 from wtforms import ValidationError
-from wtforms.validators import InputRequired, Email, Length, Regexp, NumberRange, EqualTo
+from wtforms.validators import InputRequired, Optional, Regexp, Email, Length, NumberRange, \
+                               EqualTo
 
 from .. import db
 from ..models import *
@@ -38,8 +39,7 @@ class FormBase(FlaskForm):
 # Edição de Cargo
 class FormEditarCargo(FormBase):
     nome = StringField('Nome', validators=[InputRequired(),
-                               Length(1, 36),
-                               Regexp(u'[A-Za-z ÁÉÍÓÚÂÊÎÔÛÃÕÇáéíóúâêîôûãõç]*$', 0)])
+                                           Length(1, 36)])
 
     permissoes = IntegerField('Permissões', validators=[InputRequired(),
                                                         NumberRange(0, 255)])
@@ -47,15 +47,16 @@ class FormEditarCargo(FormBase):
     padrao = BooleanField('Padrão')
 
     usuarios = QuerySelectMultipleField('Usuários',
-                                        query_factory=lambda: Usuario.query.all(),
-                                        allow_blank=True)
+                                        allow_blank=True,
+                                        query_factory= lambda: 
+                                            Usuario.query.order_by(Usuario.nome).all())
 
 
 # Criação de Usuário
 class FormCriarUsuario(FormBase):
     nome = StringField('Nome', validators=[InputRequired(),
                                Length(1, 64),
-                               Regexp(u'[A-Za-z ÁÉÍÓÚÂÊÎÔÛÃÕÇáéíóúâêîôûãõç]*$', 0)])
+                               Regexp(u'[A-Za-z ÁÉÍÓÚÂÊÎÔÛÃÕÇáéíóúâêîôûãõç]*$')])
 
     email = StringField('Email', validators=[InputRequired(),
                                              Length(1, 64),
@@ -64,7 +65,8 @@ class FormCriarUsuario(FormBase):
     senha = PasswordField('Senha', validators=[InputRequired(),
                                                Length(6, 16)])
 
-    cargo = QuerySelectField('Cargo', query_factory=lambda: Cargo.query.all())
+    cargo = QuerySelectField('Cargo',
+                             query_factory=lambda: Cargo.query.order_by(Cargo.nome).all())
 
     confirmado = BooleanField('Confirmado')
 
@@ -78,13 +80,14 @@ class FormCriarUsuario(FormBase):
 class FormEditarUsuario(FormBase):
     nome = StringField('Nome', validators=[InputRequired(),
                                Length(1, 64),
-                               Regexp(u'[A-Za-z ÁÉÍÓÚÂÊÎÔÛÃÕÇáéíóúâêîôûãõç]*$', 0)])
+                               Regexp(u'[A-Za-z ÁÉÍÓÚÂÊÎÔÛÃÕÇáéíóúâêîôûãõç]*$')])
 
     email = StringField('Email', validators=[InputRequired(),
                                              Length(1, 64),
                                              Email()])
 
-    cargo = QuerySelectField('Cargo', query_factory=lambda: Cargo.query.all())
+    cargo = QuerySelectField('Cargo',
+                             query_factory=lambda: Cargo.query.order_by(Cargo.nome).all())
 
     confirmado = BooleanField('Confirmado')
 
@@ -98,31 +101,31 @@ class FormEditarUsuario(FormBase):
 # Criação de Instituição
 class FormCriarInstituicao(FormBase):
     nome = StringField('Nome', validators=[InputRequired(),
-                               Length(1, 64),
-                               Regexp(u'[A-Za-z ÁÉÍÓÚÂÊÎÔÛÃÕÇáéíóúâêîôûãõç]*$', 0)])
+                                           Length(1, 64)])
 
 
 # Edição de Instituição
 class FormEditarInstituicao(FormBase):
     nome = StringField('Nome', validators=[InputRequired(),
-                               Length(1, 64),
-                               Regexp(u'[A-Za-z ÁÉÍÓÚÂÊÎÔÛÃÕÇáéíóúâêîôûãõç]*$', 0)])
+                                           Length(1, 64)])
 
-    campi = QuerySelectMultipleField('Campi', query_factory=lambda: Campus.query.all(),
-                                              allow_blank=True)
+    campi = QuerySelectMultipleField('Campi',
+                                     allow_blank=True,
+                                     query_factory=lambda: 
+                                        Campus.query.order_by(Campus.nome).all())
 
 
 # Criação de Campus
 class FormCriarCampus(FormBase):
     nome = StringField('Nome', validators=[InputRequired(),
-                               Length(1, 64),
-                               Regexp(u'[A-Za-z0-9 ÁÉÍÓÚÂÊÎÔÛÃÕÇáéíóúâêîôûãõç]*$', 0)])
+                                           Length(1, 64)])
 
     instituicao = QuerySelectField('Instituição',
-                                   query_factory=lambda: Instituicao.query.all())
+                                   query_factory=lambda: 
+                                       Instituicao.query.order_by(Instituicao.nome).all())
 
     mapeamento = GeoJSONField('Mapeamento', srid=-1, session=db.session,
-                              geometry_type= 'MULTIPOLYGON',
+                              geometry_type='MULTIPOLYGON',
                               render_kw={'data-width':400, 'data-height':400,
                                          'data-zoom':10,
                                          'data-lat':-3.7911773, 'data-lng':-38.5893123})
@@ -131,30 +134,38 @@ class FormCriarCampus(FormBase):
 # Edição de Campus
 class FormEditarCampus(FormBase):
     nome = StringField('Nome', validators=[InputRequired(),
-                               Length(1, 64),
-                               Regexp(u'[A-Za-z0-9 ÁÉÍÓÚÂÊÎÔÛÃÕÇáéíóúâêîôûãõç]*$', 0)])
+                                           Length(1, 64)])
 
     instituicao = QuerySelectField('Instituição',
-                                   query_factory=lambda: Instituicao.query.all())
+                                   query_factory=lambda: 
+                                       Instituicao.query.order_by(Instituicao.nome).all())
 
     mapeamento = GeoJSONField('Mapeamento', srid=-1, session=db.session,
-                              geometry_type= 'MULTIPOLYGON',
+                              geometry_type='MULTIPOLYGON',
                               render_kw={'data-width':400, 'data-height':400})
 
-    centros = QuerySelectMultipleField('Centros', query_factory=lambda: Centro.query.all(),
-                                                  allow_blank=True)
+    centros = QuerySelectMultipleField('Centros',
+                                       allow_blank=True,
+                                       query_factory=lambda: 
+                                           Centro.query.order_by(Centro.nome).all())
+
+
+    def __init__(self, *args, **kwargs):
+        super(FormEditarCampus, self).__init__(*args, **kwargs)
+        
+        flash('No momento, a edição de mapeamento não é possível.', 'info')
 
 
 # Criação de Centro
 class FormCriarCentro(FormBase):
     nome = StringField('Nome', validators=[InputRequired(),
-                               Length(1, 64),
-                               Regexp(u'[A-Za-z0-9 ÁÉÍÓÚÂÊÎÔÛÃÕÇáéíóúâêîôûãõç]*$', 0)])
+                                           Length(1, 64)])
 
-    campus = QuerySelectField('Campus', query_factory=lambda: Campus.query.all())
+    campus = QuerySelectField('Campus',
+                              query_factory=lambda: Campus.query.order_by(Campus.nome).all())
 
     mapeamento = GeoJSONField('Mapeamento', srid=-1, session=db.session,
-                              geometry_type= 'MULTIPOLYGON',
+                              geometry_type='MULTIPOLYGON',
                               render_kw={'data-width':400, 'data-height':400,
                                          'data-zoom':10,
                                          'data-lat':-3.7911773, 'data-lng':-38.5893123})
@@ -163,52 +174,60 @@ class FormCriarCentro(FormBase):
 # Edição de Centro
 class FormEditarCentro(FormBase):
     nome = StringField('Nome', validators=[InputRequired(),
-                               Length(1, 64),
-                               Regexp(u'[A-Za-z0-9 ÁÉÍÓÚÂÊÎÔÛÃÕÇáéíóúâêîôûãõç]*$', 0)])
+                                           Length(1, 64)])
 
-    campus = QuerySelectField('Campus', query_factory=lambda: Campus.query.all())
+    campus = QuerySelectField('Campus',
+                              query_factory=lambda: Campus.query.order_by(Campus.nome).all())
 
     mapeamento = GeoJSONField('Mapeamento', srid=-1, session=db.session,
-                              geometry_type= 'MULTIPOLYGON',
+                              geometry_type='MULTIPOLYGON',
                               render_kw={'data-width':400, 'data-height':400})
 
-    departamentos = QuerySelectMultipleField('Departamentos', 
-                                             query_factory=lambda: Departamento.query.all(),
-                                             allow_blank=True)
+    departamentos = QuerySelectMultipleField('Departamentos',
+                                             allow_blank=True,
+                                             query_factory=lambda: 
+                                                 Departamento.query.order_by(Departamento.nome).all())
+
+
+    def __init__(self, *args, **kwargs):
+        super(FormEditarCentro, self).__init__(*args, **kwargs)
+        
+        flash('No momento, a edição de mapeamento não é possível.', 'info')
 
 
 # Criação de Departamento
 class FormCriarDepartamento(FormBase):
     nome = StringField('Nome', validators=[InputRequired(),
-                               Length(1, 64),
-                               Regexp(u'[A-Za-z0-9 ÁÉÍÓÚÂÊÎÔÛÃÕÇáéíóúâêîôûãõç]*$', 0)])
+                                           Length(1, 64)])
 
-    centro = QuerySelectField('Centro', query_factory=lambda: Centro.query.all())
+    centro = QuerySelectField('Centro',
+                              query_factory=lambda: Centro.query.order_by(Centro.nome).all())
 
 
 # Edição de Departamento
 class FormEditarDepartamento(FormBase):
     nome = StringField('Nome', validators=[InputRequired(),
-                               Length(1, 64),
-                               Regexp(u'[A-Za-z0-9 ÁÉÍÓÚÂÊÎÔÛÃÕÇáéíóúâêîôûãõç]*$', 0)])
+                                           Length(1, 64)])
 
-    centro = QuerySelectField('Centro', query_factory=lambda: Centro.query.all())
+    centro = QuerySelectField('Centro',
+                              query_factory=lambda: Centro.query.order_by(Centro.nome).all())
 
-    blocos = QuerySelectMultipleField('Blocos', query_factory=lambda: Bloco.query.all(),
-                                                allow_blank=True)
+    blocos = QuerySelectMultipleField('Blocos',
+                                      allow_blank=True,
+                                      query_factory=lambda: Bloco.query.order_by(Bloco.nome).all())
 
 
 # Criação de Bloco
 class FormCriarBloco(FormBase):
     nome = StringField('Nome', validators=[InputRequired(),
-                               Length(1, 64),
-                               Regexp(u'[A-Za-z0-9 ÁÉÍÓÚÂÊÎÔÛÃÕÇáéíóúâêîôûãõç]*$', 0)])
+                                           Length(1, 64)])
 
     departamento = QuerySelectField('Departamento',
-                                    query_factory=lambda: Departamento.query.all())
+                                    query_factory=lambda: 
+                                        Departamento.query.order_by(Departamento.nome).all())
 
     localizacao = GeoJSONField('Localização', srid=-1, session=db.session,
-                                geometry_type= 'POINT',
+                                geometry_type='POINT',
                                 render_kw={'data-width':400, 'data-height':400,
                                            'data-zoom':10,
                                            'data-lat':-3.7911773, 'data-lng':-38.5893123})
@@ -217,19 +236,20 @@ class FormCriarBloco(FormBase):
 # Edição de Bloco
 class FormEditarBloco(FormBase):
     nome = StringField('Nome', validators=[InputRequired(),
-                               Length(1, 64),
-                               Regexp(u'[A-Za-z0-9 ÁÉÍÓÚÂÊÎÔÛÃÕÇáéíóúâêîôûãõç]*$', 0)])
+                                           Length(1, 64)])
 
     departamento = QuerySelectField('Departamento',
-                                    query_factory=lambda: Departamento.query.all())
+                                    query_factory=lambda: 
+                                        Departamento.query.order_by(Departamento.nome).all())
 
     localizacao = GeoJSONField('Localização', srid=-1, session=db.session,
-                               geometry_type= 'POINT',
+                               geometry_type='POINT',
                                render_kw={'data-width':400, 'data-height':400})
 
     ambientes = QuerySelectMultipleField('Ambientes',
-                                         query_factory=lambda: Ambiente.query.all(),
-                                         allow_blank=True)
+                                         allow_blank=True,
+                                         query_factory=lambda: 
+                                             Ambiente.query.order_by(Ambiente.nome).all())
 
 
 # Criação de Ambiente
@@ -240,58 +260,61 @@ class FormCriarAmbiente(FormBase):
                                               ('subestacaoaerea', 'Subestação Aérea')],
                                      validators=[InputRequired()])
 
+    # Nota: Adicionar tipos conforme novos modelos forem sendo criados.
+
     proximo = SubmitField('Próximo')
 
 
 # Criação de Ambiente Interno
 class FormCriarAmbienteInterno(FormBase):
     nome = StringField('Nome', validators=[InputRequired(),
-                               Length(1, 64),
-                               Regexp(u'[A-Za-z0-9 ÁÉÍÓÚÂÊÎÔÛÃÕÇáéíóúâêîôûãõç]*$', 0)])
+                                           Length(1, 64)])
 
     andar = Select2Field('Andar',
       choices=[('Térreo', 'Térreo')] + [(str(n)+'º Andar', str(n)+'º Andar') 
                for n in range(1, 11)])
 
-    bloco = QuerySelectField('Bloco', query_factory=lambda: Bloco.query.all())
+    bloco = QuerySelectField('Bloco',
+                             query_factory=lambda: Bloco.query.order_by(Bloco.nome).all())
 
     detalhe_localizacao = TextAreaField('Detalhe de Localização')
 
-    area = DecimalField('Área (m²)', places=2, validators=[NumberRange(0)])
+    area = DecimalField('Área (m²)', places=2, validators=[Optional(), NumberRange(0)])
 
-    populacao = IntegerField('População', validators=[NumberRange(0)])
+    populacao = IntegerField('População', validators=[Optional(), NumberRange(0)])
 
 
 # Edição de Ambiente Interno
 class FormEditarAmbienteInterno(FormBase):
     nome = StringField('Nome', validators=[InputRequired(),
-                               Length(1, 64),
-                               Regexp(u'[A-Za-z0-9 ÁÉÍÓÚÂÊÎÔÛÃÕÇáéíóúâêîôûãõç]*$', 0)])
+                                           Length(1, 64)])
 
     andar = Select2Field('Andar',
       choices=[('Térreo', 'Térreo')] + [(str(n)+'º Andar', str(n)+'º Andar')
                for n in range(1, 11)])    
 
-    bloco = QuerySelectField('Bloco', query_factory=lambda: Bloco.query.all())
+    bloco = QuerySelectField('Bloco',
+                             query_factory=lambda: Bloco.query.order_by(Bloco.nome).all())
 
     detalhe_localizacao = TextAreaField('Detalhe de Localização')
 
-    area = DecimalField('Área (m²)', places=2, validators=[NumberRange(0)])
+    area = DecimalField('Área (m²)', places=2, validators=[Optional(), NumberRange(0)])
 
-    populacao = IntegerField('População', validators=[NumberRange(0)])
+    populacao = IntegerField('População', validators=[Optional(), NumberRange(0)])
 
     equipamentos = QuerySelectMultipleField('Equipamentos',
-                                            query_factory=lambda: Equipamento.query.all(),
-                                            allow_blank=True)
+                                            allow_blank=True,
+                                            query_factory=lambda: 
+                                            Equipamento.query.order_by(Equipamento.tipo_equipamento).all())
 
 
 # Criação de Ambiente Externo
 class FormCriarAmbienteExterno(FormBase):
     nome = StringField('Nome', validators=[InputRequired(),
-                               Length(1, 64),
-                               Regexp(u'[A-Za-z0-9 ÁÉÍÓÚÂÊÎÔÛÃÕÇáéíóúâêîôûãõç]*$', 0)])
+                                           Length(1, 64)])
 
-    bloco = QuerySelectField('Bloco', query_factory=lambda: Bloco.query.all())
+    bloco = QuerySelectField('Bloco',
+                             query_factory=lambda: Bloco.query.order_by(Bloco.nome).all())
 
     detalhe_localizacao = TextAreaField('Detalhe de Localização')
 
@@ -299,29 +322,30 @@ class FormCriarAmbienteExterno(FormBase):
 # Edição de Ambiente Externo
 class FormEditarAmbienteExterno(FormBase):
     nome = StringField('Nome', validators=[InputRequired(),
-                               Length(1, 64),
-                               Regexp(u'[A-Za-z0-9 ÁÉÍÓÚÂÊÎÔÛÃÕÇáéíóúâêîôûãõç]*$', 0)])
+                                           Length(1, 64)])
 
-    bloco = QuerySelectField('Bloco', query_factory=lambda: Bloco.query.all())
+    bloco = QuerySelectField('Bloco',
+                             query_factory=lambda: Bloco.query.order_by(Bloco.nome).all())
 
     detalhe_localizacao = TextAreaField('Detalhe de Localização')
 
     equipamentos = QuerySelectMultipleField('Equipamentos',
-                                            query_factory=lambda: Equipamento.query.all(),
-                                            allow_blank=True)
+                                            allow_blank=True,
+                                            query_factory=lambda: 
+                                            Equipamento.query.order_by(Equipamento.tipo_equipamento).all())
 
 
 # Criação de Subestação Abrigada
 class FormCriarSubestacaoAbrigada(FormBase):
     nome = StringField('Nome', validators=[InputRequired(),
-                               Length(1, 64),
-                               Regexp(u'[A-Za-z0-9 ÁÉÍÓÚÂÊÎÔÛÃÕÇáéíóúâêîôûãõç]*$', 0)])
+                                           Length(1, 64)])
 
     bloco = QuerySelectField('Bloco', 
-        query_factory=lambda: Bloco.query.filter(Bloco.nome.like('Subestações%')).all())
+        query_factory=lambda: 
+            Bloco.query.filter(Bloco.nome.like('Subestações%')).order_by(Bloco.nome).all())
 
     localizacao = GeoJSONField('Localização', srid=-1, session=db.session,
-                               geometry_type= 'POINT',
+                               geometry_type='POINT',
                                render_kw={'data-width':400, 'data-height':400,
                                           'data-zoom':10,
                                           'data-lat':-3.7911773, 'data-lng':-38.5893123})
@@ -332,34 +356,35 @@ class FormCriarSubestacaoAbrigada(FormBase):
 # Edição de Subestação Abrigada
 class FormEditarSubestacaoAbrigada(FormBase):
     nome = StringField('Nome', validators=[InputRequired(),
-                               Length(1, 64),
-                               Regexp(u'[A-Za-z0-9 ÁÉÍÓÚÂÊÎÔÛÃÕÇáéíóúâêîôûãõç]*$', 0)])
+                                           Length(1, 64)])
 
     bloco = QuerySelectField('Bloco', 
-        query_factory=lambda: Bloco.query.filter(Bloco.nome.like('Subestações%')).all())
+        query_factory=lambda: 
+            Bloco.query.filter(Bloco.nome.like('Subestações%')).order_by(Bloco.nome).all())
 
     localizacao = GeoJSONField('Localização', srid=-1, session=db.session,
-                               geometry_type= 'POINT',
+                               geometry_type='POINT',
                                render_kw={'data-width':400, 'data-height':400})
 
     detalhe_localizacao = TextAreaField('Detalhe de Localização')
 
-    equipamentos = QuerySelectMultipleField('Equipamentos', 
-                                            query_factory=lambda: Equipamento.query.all(),
-                                            allow_blank=True)
+    equipamentos = QuerySelectMultipleField('Equipamentos',
+                                            allow_blank=True,
+                                            query_factory=lambda: 
+                                            Equipamento.query.order_by(Equipamento.tipo_equipamento).all())
 
 
 # Criação de Subestação Aérea
 class FormCriarSubestacaoAerea(FormBase):
     nome = StringField('Nome', validators=[InputRequired(),
-                               Length(1, 64),
-                               Regexp(u'[A-Za-z0-9 ÁÉÍÓÚÂÊÎÔÛÃÕÇáéíóúâêîôûãõç]*$', 0)])
+                                           Length(1, 64)])
 
     bloco = QuerySelectField('Bloco', 
-        query_factory=lambda: Bloco.query.filter(Bloco.nome.like('Subestações%')).all())
+        query_factory=lambda: 
+            Bloco.query.filter(Bloco.nome.like('Subestações%')).order_by(Bloco.nome).all())
 
     localizacao = GeoJSONField('Localização', srid=-1, session=db.session,
-                               geometry_type= 'POINT',
+                               geometry_type='POINT',
                                render_kw={'data-width':400, 'data-height':400,
                                           'data-zoom':10,
                                           'data-lat':-3.7911773, 'data-lng':-38.5893123})
@@ -370,27 +395,30 @@ class FormCriarSubestacaoAerea(FormBase):
 # Edição de Subestação Aérea
 class FormEditarSubestacaoAerea(FormBase):
     nome = StringField('Nome', validators=[InputRequired(),
-                               Length(1, 64),
-                               Regexp(u'[A-Za-z0-9 ÁÉÍÓÚÂÊÎÔÛÃÕÇáéíóúâêîôûãõç]*$', 0)])
+                                           Length(1, 64)])
 
     bloco = QuerySelectField('Bloco', 
-        query_factory=lambda: Bloco.query.filter(Bloco.nome.like('Subestações%')).all())
+        query_factory=lambda: 
+            Bloco.query.filter(Bloco.nome.like('Subestações%')).order_by(Bloco.nome).all())
 
     localizacao = GeoJSONField('Localização', srid=-1, session=db.session,
-                               geometry_type= 'POINT',
+                               geometry_type='POINT',
                                render_kw={'data-width':400, 'data-height':400})
 
     detalhe_localizacao = TextAreaField('Detalhe de Localização')
 
     equipamentos = QuerySelectMultipleField('Equipamentos',
-                                            query_factory=lambda: Equipamento.query.all(),
-                                            allow_blank=True)
+                                            allow_blank=True,
+                                            query_factory=lambda: 
+                                            Equipamento.query.order_by(Equipamento.tipo_equipamento).all())
 
 
 # Criação de Equipamento
 class FormCriarEquipamento(FormBase):
     tipo_equipamento = Select2Field('', choices=[('extintor', 'Extintor')],
                                         validators=[InputRequired()])
+
+    # Nota: Adicionar tipos conforme novos modelos forem sendo criados.
 
     proximo = SubmitField('Próximo')
 
@@ -410,11 +438,11 @@ class FormCriarExtintor(FormBase):
     carga_nominal = DecimalField('Carga Nominal (kg)', places=2, 
                                                        validators=[NumberRange(0)])
 
-    fabricante = StringField('Fabricante',
-                             validators=[Length(1, 64),
-                             Regexp(u'[A-Za-z0-9 ÁÉÍÓÚÂÊÎÔÛÃÕÇáéíóúâêîôûãõç]*$', 0)])
+    fabricante = StringField('Fabricante', validators=[Length(1, 64)])
 
-    ambiente = QuerySelectField('Ambiente', query_factory=lambda: Ambiente.query.all())
+    ambiente = QuerySelectField('Ambiente',
+                                query_factory=lambda: 
+                                    Ambiente.query.order_by(Ambiente.nome).all())
 
     intervalo_manutencao = IntegerField('Intervalo de Manutenção (Meses)',
                                         validators=[InputRequired(), NumberRange(0)])
@@ -445,11 +473,11 @@ class FormEditarExtintor(FormBase):
     carga_nominal = DecimalField('Carga Nominal (kg)', places=2,
                                                        validators=[NumberRange(0)])
 
-    fabricante = StringField('Fabricante',
-                             validators=[Length(1, 64),
-                             Regexp(u'[A-Za-z0-9 ÁÉÍÓÚÂÊÎÔÛÃÕÇáéíóúâêîôûãõç]*$', 0)])
+    fabricante = StringField('Fabricante', validators=[Length(1, 64)])
 
-    ambiente = QuerySelectField('Ambiente', query_factory=lambda: Ambiente.query.all())
+    ambiente = QuerySelectField('Ambiente',
+                                query_factory=lambda: 
+                                    Ambiente.query.order_by(Ambiente.nome).all())
 
     intervalo_manutencao = IntegerField('Intervalo de Manutenção (Meses)',
                                         validators=[InputRequired(),
@@ -493,7 +521,9 @@ class FormCriarManutencao(FormBase):
                                             ('Inicial', 'Inicial')])
 
     equipamento = QuerySelectField('Equipamento',
-                                   query_factory=lambda: Equipamento.query.all())
+                  query_factory=lambda: 
+                  Equipamento.query.filter_by(em_uso=True).filter_by(em_manutencao=False)\
+                                   .order_by(Equipamento.tipo_equipamento).all())
 
     descricao_servico = TextAreaField('Descrição do Serviço')
 
@@ -504,17 +534,21 @@ class FormCriarManutencao(FormBase):
     def __init__(self, *args, **kwargs):
         super(FormCriarManutencao, self).__init__(*args, **kwargs)
 
-        # Caso, o id de um equipamento esteja presente na query string, trata-se
-        # de uma manutenção inicial, logo, alguns campos são preenchidos automaticamente
+        # Caso o id de um equipamento esteja presente na query string, o campo
+        # de equipamento é automaticamente preenchido
         if request.args.get('id'):
-            self.tipo_manutencao.data = 'Inicial'
-            self.tipo_manutencao.render_kw = dict(disabled='disabled')
-
             self.equipamento.data = Equipamento.query.get(request.args.get('id'))
-            self.equipamento.render_kw = dict(disabled='disabled')            
+            self.equipamento.render_kw = dict(disabled='disabled')
 
-            self.status.data = 'Concluída'
-            self.status.render_kw = dict(disabled='disabled')
+            # Caso um parâmetro de tipo de manutenção seja passado pela query string,
+            # alguns campos relevantes são preenchidos automaticamente, de acordo com
+            # o tipo de manutenção
+            if request.args.get('tipo') == 'inicial':
+                self.tipo_manutencao.data = 'Inicial'
+                self.tipo_manutencao.render_kw = dict(disabled='disabled')
+
+                self.status.data = 'Concluída'
+                self.status.render_kw = dict(disabled='disabled')
 
     def validate_num_ordem_servico(self, field):
         if field.data != 0:
@@ -525,6 +559,10 @@ class FormCriarManutencao(FormBase):
         if self.status.data == 'Concluída':
             if field.data is None:
                 raise ValidationError('Cadastre a data de conclusão.')
+
+    def validate_equipamento(self, field):
+        if self.status.data == 'Aberta' and field.data.em_manutencao:
+            raise ValidationError('Equipamento já em manutenção. Conclua a última manutenção.')
 
     def validate_status(self, field):
         if self.data_conclusao.data:
@@ -556,7 +594,8 @@ class FormEditarManutencao(FormBase):
                                             ('Inicial', 'Inicial')])
 
     equipamento = QuerySelectField('Equipamento',
-                                   query_factory=lambda: Equipamento.query.all())
+                  query_factory=lambda: 
+                  Equipamento.query.filter_by(em_uso=True).order_by(Equipamento.tipo_equipamento).all())
 
     descricao_servico = TextAreaField('Descrição do Serviço')
 

@@ -63,6 +63,8 @@ class ModelViewCargo(ModelViewAdministrador):
 
     column_list = ['nome', 'permissoes', 'padrao']
 
+    column_default_sort = 'nome'
+
     column_sortable_list = ['nome', 'permissoes']
 
     column_searchable_list = ['nome']
@@ -80,6 +82,8 @@ class ModelViewCargo(ModelViewAdministrador):
 # Usuários
 class ModelViewUsuario(ModelViewAdministrador):
     column_list = ['nome', 'email', 'cargo', 'confirmado']
+
+    column_default_sort = 'nome'
 
     column_sortable_list = ['nome', ('cargo', 'cargo.nome')]
 
@@ -101,6 +105,8 @@ class ModelViewUsuario(ModelViewAdministrador):
 class ModelViewInstituicao(ModelViewCadastrador):
     column_list = ['nome']
 
+    column_default_sort = 'nome'
+
     column_sortable_list = ['nome']
 
     column_searchable_list = ['nome']
@@ -116,6 +122,8 @@ class ModelViewInstituicao(ModelViewCadastrador):
 # Campi
 class ModelViewCampus(ModelViewCadastrador):
     column_list = ['nome', 'instituicao', 'mapeamento']
+
+    column_default_sort = 'nome'
 
     column_sortable_list = ['nome', ('instituicao', 'instituicao.nome')]
 
@@ -164,6 +172,8 @@ class ModelViewCampus(ModelViewCadastrador):
 class ModelViewCentro(ModelViewCadastrador):
     column_list = ['nome', 'campus', 'mapeamento']
 
+    column_default_sort = 'nome'
+
     column_sortable_list = ['nome', ('campus', 'campus.nome')]
 
     column_searchable_list = ['nome', 'campus.nome']
@@ -181,6 +191,8 @@ class ModelViewCentro(ModelViewCadastrador):
 # Departamentos
 class ModelViewDepartamento(ModelViewCadastrador):
     column_list = ['nome', 'centro', 'centro.campus']
+
+    column_default_sort = 'nome'
 
     column_sortable_list = ['nome', ('centro', 'centro.nome'),
                             ('centro.campus', 'centro.campus.nome')]
@@ -212,6 +224,8 @@ class ModelViewDepartamento(ModelViewCadastrador):
 class ModelViewBloco(ModelViewCadastrador):
     column_list = ['nome', 'departamento', 'departamento.centro',
                    'departamento.centro.campus', 'localizacao']
+
+    column_default_sort = 'nome'
 
     column_sortable_list = ['nome', ('departamento', 'departamento.nome'),
                             ('departamento.centro', 'departamento.centro.nome'),
@@ -257,6 +271,8 @@ class ModelViewBloco(ModelViewCadastrador):
 class ModelViewAmbiente(ModelViewCadastrador):
     column_list = ['nome', 'tipo', 'bloco', 'bloco.departamento',
                    'bloco.departamento.centro', 'bloco.departamento.centro.campus']
+
+    column_default_sort = 'nome'
 
     column_sortable_list = ['nome', 'tipo', ('bloco', 'bloco.nome'),
                             ('bloco.departamento', 'bloco.departamento.nome'),
@@ -336,6 +352,8 @@ class ModelViewAmbienteInterno(ModelViewCadastrador):
     column_list = ['nome', 'andar', 'bloco', 'bloco.departamento',
                    'bloco.departamento.centro', 'bloco.departamento.centro.campus']
 
+    column_default_sort = 'nome'
+
     column_sortable_list = ['nome', 'andar', ('bloco', 'bloco.nome'),
                             ('bloco.departamento', 'bloco.departamento.nome'),
                             ('bloco.departamento.centro', 
@@ -389,6 +407,8 @@ class ModelViewAmbienteExterno(ModelViewCadastrador):
     column_list = ['nome', 'bloco', 'bloco.departamento', 'bloco.departamento.centro',
                    'bloco.departamento.centro.campus']
 
+    column_default_sort = 'nome'
+
     column_sortable_list = ['nome', ('bloco', 'bloco.nome'),
                             ('bloco.departamento', 'bloco.departamento.nome'),
                             ('bloco.departamento.centro', 
@@ -438,6 +458,8 @@ class ModelViewAmbienteExterno(ModelViewCadastrador):
 class ModelViewSubestacaoAbrigada(ModelViewCadastrador):
     column_list = ['nome', 'bloco.departamento.centro.campus', 'localizacao']
 
+    column_default_sort = 'nome'
+
     column_sortable_list = ['nome',
                             ('bloco.departamento.centro.campus', 
                              'bloco.departamento.centro.campus.nome')]
@@ -474,6 +496,9 @@ class ModelViewSubestacaoAbrigada(ModelViewCadastrador):
 # Subestações Aéreas
 class ModelViewSubestacaoAerea(ModelViewCadastrador):
     column_list = ['nome', 'bloco.departamento.centro.campus', 'localizacao']
+
+    column_default_sort = 'nome'
+
     column_sortable_list = ['nome',
                             ('bloco.departamento.centro.campus', 
                              'bloco.departamento.centro.campus.nome')]
@@ -483,7 +508,6 @@ class ModelViewSubestacaoAerea(ModelViewCadastrador):
     column_details_list = ['nome', 'tipo', 'bloco', 'bloco.departamento',
                            'bloco.departamento.centro', 'bloco.departamento.centro.campus',
                            'localizacao', 'detalhe_localizacao', 'equipamentos']
-
 
     column_labels = {'bloco.departamento': 'Departamento',
                      'bloco.departamento.centro': 'Centro',
@@ -516,7 +540,9 @@ class ModelViewEquipamento(ModelViewCadastrador):
     column_list = ['tombamento', 'tipo_equipamento', 'categoria_equipamento',
                    'fabricante', 'ambiente.nome', 'ambiente.bloco',
                    'ambiente.bloco.departamento', 'ambiente.bloco.departamento.centro',
-                   'ambiente.bloco.departamento.centro.campus', 'em_uso']
+                   'ambiente.bloco.departamento.centro.campus', 'em_uso', 'em_manutencao']
+
+    column_default_sort = 'tombamento'
 
     column_sortable_list = ['tombamento', 'tipo_equipamento', 'categoria_equipamento', 
                             'fabricante', 'ambiente.nome',
@@ -540,13 +566,37 @@ class ModelViewEquipamento(ModelViewCadastrador):
                      'ambiente.bloco': 'Bloco',
                      'ambiente.bloco.departamento': 'Departamento',
                      'ambiente.bloco.departamento.centro': 'Centro',
-                     'ambiente.bloco.departamento.centro.campus': 'Campus'}
+                     'ambiente.bloco.departamento.centro.campus': 'Campus',
+                     'em_manutencao': 'Em Manutenção'}
 
     column_filters = FiltrosStrings(Equipamento.tipo_equipamento, 'Tipo')
     column_filters.extend(FiltrosStrings(Equipamento.categoria_equipamento, 'Categoria'))
-    column_filters.extend(FiltrosStrings(Ambiente.nome, 'Ambiente'))
     column_filters.extend(FiltrosStrings(Equipamento.fabricante, 'Fabricante'))
+    column_filters.extend(FiltrosStrings(Ambiente.nome, 'Ambiente'))
+    column_filters.extend(FiltrosStrings(Bloco.nome, 'Bloco'))
+    column_filters.extend(FiltrosStrings(Departamento.nome, 'Departamento'))
+    column_filters.extend(FiltrosStrings(Centro.nome, 'Centro'))
+    column_filters.extend(FiltrosStrings(Campus.nome, 'Campus'))    
     column_filters.append(BooleanEqualFilter(Equipamento.em_uso, 'Em Uso'))
+    column_filters.append(BooleanEqualFilter(Equipamento.em_uso, 'Em Manutenção'))
+
+
+    def __init__(self, *args, **kwargs):
+        super(ModelViewEquipamento, self).__init__(*args, **kwargs)
+
+        # Consertar geração automática de joins
+
+        self._filter_joins[Bloco.nome] = [Ambiente.__table__, Bloco.__table__]
+
+        self._filter_joins[Departamento.nome] = [Ambiente.__table__, Bloco.__table__,
+                                                 Departamento.__table__]
+
+        self._filter_joins[Centro.nome] = [Ambiente.__table__, Bloco.__table__,
+                                           Departamento.__table__, Centro.__table__]
+
+        self._filter_joins[Campus.nome] = [Ambiente.__table__, Bloco.__table__,
+                                           Departamento.__table__,Centro.__table__,
+                                           Campus.__table__]
 
 
     # Escolher tipo de equipamento e redirecionar para view de criação correspondente
@@ -594,7 +644,9 @@ class ModelViewExtintor(ModelViewCadastrador):
                    'ambiente.nome', 'ambiente.bloco', 'ambiente.bloco.departamento',
                    'ambiente.bloco.departamento.centro',
                    'ambiente.bloco.departamento.centro.campus',
-                   'intervalo_manutencao', 'proxima_manutencao', 'em_uso']
+                   'intervalo_manutencao', 'proxima_manutencao', 'em_uso', 'em_manutencao']
+
+    column_default_sort = 'tombamento'
 
     column_sortable_list = ['tombamento', 'classificacao', 'carga_nominal', 'fabricante',
                             'ambiente.nome', ('ambiente.bloco', 'ambiente.bloco.nome'),
@@ -618,7 +670,8 @@ class ModelViewExtintor(ModelViewCadastrador):
                            'ambiente.bloco.departamento.centro',
                            'ambiente.bloco.departamento.centro.campus',
                            'info_adicional', 'intervalo_manutencao', 
-                           'proxima_manutencao', 'manutencoes', 'em_uso']
+                           'proxima_manutencao', 'manutencoes', 'em_uso', 'em_manutencao',
+                           'inicio_manutencao']
 
     column_labels = {'tipo_equipamento': 'Tipo',
                      'categoria_equipamento': 'Categoria',
@@ -631,7 +684,9 @@ class ModelViewExtintor(ModelViewCadastrador):
                      'intervalo_manutencao': 'Intervalo de Manutenção',
                      'manutencoes': 'Manutenções',
                      'proxima_manutencao': 'Próxima Manutenção',
-                     'info_adicional': 'Informações Adicionais'}
+                     'info_adicional': 'Informações Adicionais',
+                     'em_manutencao': 'Em Manutenção',
+                     'inicio_manutencao': 'Início da Manutenção'}
 
     column_formatters = dict(manutencoes=typefmt.formato_relacao_manutencoes)
 
@@ -647,6 +702,7 @@ class ModelViewExtintor(ModelViewCadastrador):
                                           'Intervalo de Manutenção'))
     column_filters.extend(FiltrosDatas(Extintor.proxima_manutencao, 'Próxima Manutenção'))
     column_filters.append(BooleanEqualFilter(Equipamento.em_uso, 'Em Uso'))
+    column_filters.append(BooleanEqualFilter(Equipamento.em_manutencao, 'Em Manutenção'))
 
     create_form = FormCriarExtintor
     edit_form = FormEditarExtintor
@@ -692,6 +748,8 @@ class ModelViewManutencao(ModelViewCadastrador):
                    'equipamento.ambiente.bloco.departamento.centro',
                    'equipamento.ambiente.bloco.departamento.centro.campus',
                    'status']
+
+    column_default_sort = ('data_abertura', True)
 
     column_sortable_list = ['num_ordem_servico', 'data_abertura', 'data_conclusao',
                             'tipo_manutencao', 'equipamento.tipo_equipamento',
@@ -774,10 +832,18 @@ class ModelViewManutencao(ModelViewCadastrador):
                                            Centro.__table__, Campus.__table__]
 
 
-    # Procedimentos adicionais quando uma manutenção é concluída
+    # Procedimentos adicionais quando uma manutenção é criada ou editada
     def after_model_change(self, form, model, is_created):
+        # Equipamento alvo da manutenção
+        equipamento = model.equipamento
+
+        # Manutenções concluídas
         if model.status == 'Concluída':
-            equipamento = model.equipamento
+            # Mudar o status "em manutenção" do equipamento
+            equipamento.em_manutencao = False
+
+            # Limpar o campo de data de abertura de manutenção do equipamento
+            equipamento.inicio_manutencao = None
 
             # Para o caso de troca, o equipamento antigo é colocado fora de uso
             if model.tipo_manutencao == 'Troca':
@@ -795,6 +861,14 @@ class ModelViewManutencao(ModelViewCadastrador):
                 db.session.add(equipamento)
                 db.session.commit()
 
+        # Manutenções abertas
+        else:
+            # Atualizar o status "em manutenção" do equipamento
+            equipamento.em_manutencao = True
+
+            # Atualizar o campo de data de abertura de manutenção do equipamento
+            equipamento.inicio_manutencao = model.data_abertura
+
 
     # Quando uma manutenção tipo troca é concluída, redirecionar para criação de um
     # novo equipamento, que substitui o antigo
@@ -809,7 +883,7 @@ class ModelViewManutencao(ModelViewCadastrador):
             return url_for(tipo_equipamento + '.create_view')
 
         # Para outros casos, redirecionar para view de listagem
-        return self.get_url('.index_view')
+        return request.args.get('url') or self.get_url('.index_view')
 
 
     # Página de cadastro de manutenção inicial
