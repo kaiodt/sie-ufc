@@ -2,9 +2,13 @@
 ################################################################################
 ## SIE - UFC 
 ################################################################################
-## Estilos Views de Listagem - Painel de Administração
+## Estilos Página Controle de Manutenções - Blueprint Principal
 ################################################################################
 */
+
+#botao-legenda {
+  float: right;
+}
 
 .table>thead>tr>th {
   text-align: center;
@@ -13,9 +17,10 @@
 
 .table>tbody>tr>td {
   text-align: center;
-  vertical-align: middle;
+  vertical-align: middle;  
 }
 
-.table>tbody>tr>td>div {
-  margin: auto;
+.dropdown-menu.opcoes_manutencao {
+  left: unset;
+  right: 0;
 }

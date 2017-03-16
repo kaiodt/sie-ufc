@@ -26,6 +26,7 @@ $ sudo apt-get install postgresql-9.6-postgis-2.3
 $ sudo -u postgres createuser --superuser $USER
 $ psql postgres
 
+postgres# ALTER USER postgres PASSWORD 'postgres'
 postgres# CREATE DATABASE dev_sie_ufc;
 postgres# CREATE ROLE sie_ufc_admin LOGIN PASSWORD 'sie_ufc';
 postgres# GRANT ALL PRIVILEGES ON DATABASE dev_sie_ufc TO sie_ufc_admin;
@@ -35,7 +36,6 @@ $ psql dev_sie_ufc
 
 dev_sie_ufc# CREATE EXTENSION postgis;
 dev_sie_ufc# \q
-
 
 # Configuração Pgadmin3
 

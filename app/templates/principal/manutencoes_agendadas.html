@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% import "macros.html" as macros %}
+
+
+{% block page_title %}Manutenções Agendadas{% endblock %}
+
+
+{% block head %}
+	{{ super() }}
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/principal/manutencao.css') }}">
+{% endblock %}
+
+
+{% set active_tab = 'manutencao' %}
+
+
+{% block page_content %}
+	<div class="page-header">
+		<h1>Controle de Manutenções</h1>	
+	</div>
+	
+	<ul class="nav nav-tabs">
+	  <li role="presentation">
+	  	<a href="{{ url_for('principal.manutencoes_abertas') }}">
+	  		Manutenções Abertas
+	  	</a>
+	  </li>
+
+	  <li role="presentation" class="active">
+	  	<a href="{{ url_for('principal.manutencoes_agendadas') }}">
+	  		Manutenções Agendadas
+	  	</a>
+	  </li>
+
+		<button id="botao-legenda" type="button" class="btn btn-default" data-toggle="modal" data-target="#modalLegenda">
+		  Legenda
+		</button>
+	</ul>
+
+	{% if equip_man_agendada %}
+		<table class="table table-hover">
+			<thead>
+				<tr>
+					<th>Tombamento</th>
+					<th>Tipo de Equipamento</th>
+					<th>Ambiente</th>
+					<th>Bloco</th>
+					<th>Departamento</th>
+					<th>Centro</th>
+					<th>Campus</th>
+					<th>Próxima Manutenção</th>
+					{% if current_user.cadastrador() %}
+						<th></th>	
+					{% endif %}
+				</tr>
+			</thead>
+
+			<tbody>
+				{% for equipamento in equip_man_agendada %}
+					{% if (equipamento.proxima_manutencao - data_hoje).days < 0 %}
+						<tr class="danger">
+					{% elif (equipamento.proxima_manutencao - data_hoje).days <= 7 %}
+						<tr class="warning">
+					{% elif (equipamento.proxima_manutencao - data_hoje).days <= 30 %}
+						<tr class="info">
+					{% else %}
+						<tr>
+					{% endif %}
+							<td>{{ equipamento.tombamento }}</td>
+							<td>{{ equipamento.tipo_equipamento }}</td>
+							<td>{{ equipamento.ambiente.nome }}</td>
+							<td>{{ equipamento.ambiente.bloco.nome }}</td>
+							<td>{{ equipamento.ambiente.bloco.departamento.nome }}</td>
+							<td>{{ equipamento.ambiente.bloco.departamento.centro.nome }}</td>
+							<td>{{ equipamento.ambiente.bloco.departamento.centro.campus.nome }}</td>
+							<td>{{ equipamento.proxima_manutencao.strftime('%d.%m.%Y') }}</td>
+						{% if current_user.cadastrador() %}
+							<td>
+								<div class="dropdown">
+		  						<button class="btn btn-default dropdown-toggle" type="button" id="equip{{ equipamento.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+		    	    			<i class="fa fa-wrench" aria-hidden="true"></i>
+		  						</button>
+		  						
+		  						<ul class="dropdown-menu opcoes_manutencao" aria-labelledby="equip{{ equipamento.id }}">
+		    						<li>
+		    							<a href="{{ url_for('manutencao.create_view',
+		    																	id=equipamento.id,
+		    																	url=url_for('principal.manutencoes_agendadas')) }}">
+		    								Criar Manutenção
+		    							</a>
+		    						</li>
+								</div>							
+							</td>							
+						{% endif %}
+					</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	{% else %}
+		<h4>Nenhum equipamento com manutenção agendada.</h4>
+	{% endif %}
+
+	<!-- Paginação -->
+	{% if pagination %}
+		<div class="pagination">
+			{{ macros.pagination_widget(pagination, 'principal.manutencoes_agendadas') }}
+		</div>		
+	{% endif %}
+
+	<!-- Modal de Legenda-->
+	<div class="modal fade" id="modalLegenda" tabindex="-1" role="dialog" aria-labelledby="labelModalLegenda">
+	  <div class="modal-dialog" role="document">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+	        <h4 class="modal-title" id="labelModalLegenda">Legenda de Cores</h4>
+	      </div>
+	      <div class="modal-body">
+	      	<table class="table">
+		      	<tbody>
+		      		<tr class="danger">
+		      			<td>Manutenção atrasada</td>
+		      		</tr>
+		      		<tr class="warning">
+		      			<td>Menos de 7 dias para próxima manutenção</td>
+		      		</tr>
+		      		<tr class="info">
+		      			<td>Menos de 30 dias para próxima manutenção</td>
+		      		</tr>
+		      	</tbody>
+	      	</table>
+	      </div>
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-danger" data-dismiss="modal">Fechar</button>
+	      </div>
+	    </div>
+	  </div>
+	</div>	
+{% endblock %}

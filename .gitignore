@@ -88,6 +88,9 @@ ENV/
 # Rope project settings
 .ropeproject
 
+# Migrações do banco de dados
+migrations/
+
 # Outros (Kaio)
 gerar_requerimentos.sh
 delete_requirements.txt

@@ -451,6 +451,8 @@ class Equipamento(db.Model):
     proxima_manutencao = db.Column(db.Date, index=True)
     info_adicional = db.Column(db.Text)
     em_uso = db.Column(db.Boolean, default=True, index=True)
+    em_manutencao = db.Column(db.Boolean, default=False, index=True)    # Se houver manutenção aberta
+    inicio_manutencao = db.Column(db.Date, index=True)  # Data de abertura da manutenção atual
 
     __mapper_args__ = {
         'polymorphic_identity': u'Equipamento',

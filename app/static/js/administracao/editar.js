@@ -2,20 +2,11 @@
 ################################################################################
 ## SIE - UFC 
 ################################################################################
-## Estilos Views de Listagem - Painel de Administração
+## Javascript Página de Edição - Painel de Administração
 ################################################################################
 */
 
-.table>thead>tr>th {
-  text-align: center;
-  vertical-align: middle;
-}
+// Remoção dos botões de adicionar outro e continuar editando
 
-.table>tbody>tr>td {
-  text-align: center;
-  vertical-align: middle;
-}
-
-.table>tbody>tr>td>div {
-  margin: auto;
-}
+$('input[name="_add_another"]').remove();
+$('input[name="_continue_editing"]').remove();
