@@ -89,7 +89,7 @@ ENV/
 .ropeproject
 
 # Migrações do banco de dados
-#migrations/
+migrations/
 
 # Outros (Kaio)
 gerar_requerimentos.sh
