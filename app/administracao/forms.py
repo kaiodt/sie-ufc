@@ -254,13 +254,9 @@ class FormEditarBloco(FormBase):
 
 # Criação de Ambiente
 class FormCriarAmbiente(FormBase):
-    tipo_ambiente = Select2Field('', choices=[('ambienteinterno', 'Ambiente Interno'),
-                                              ('ambienteexterno', 'Ambiente Externo'),
-                                              ('subestacaoabrigada', 'Subestação Abrigada'),
-                                              ('subestacaoaerea', 'Subestação Aérea')],
-                                     validators=[InputRequired()])
-
-    # Nota: Adicionar tipos conforme novos modelos forem sendo criados.
+    tipo_ambiente = Select2Field('', validators=[InputRequired()],
+        choices=[(tipo.__name__.lower(), tipo.__mapper_args__['polymorphic_identity']) 
+                 for tipo in Ambiente.__subclasses__()])
 
     proximo = SubmitField('Próximo')
 
@@ -415,10 +411,9 @@ class FormEditarSubestacaoAerea(FormBase):
 
 # Criação de Equipamento
 class FormCriarEquipamento(FormBase):
-    tipo_equipamento = Select2Field('', choices=[('extintor', 'Extintor')],
-                                        validators=[InputRequired()])
-
-    # Nota: Adicionar tipos conforme novos modelos forem sendo criados.
+    tipo_equipamento = Select2Field('', validators=[InputRequired()],
+        choices=[(tipo.__name__.lower(), tipo.__mapper_args__['polymorphic_identity']) 
+                 for tipo in Equipamento.__subclasses__()])
 
     proximo = SubmitField('Próximo')
 
@@ -495,6 +490,108 @@ class FormEditarExtintor(FormBase):
                                    render_kw={'data-date-format': 'DD.MM.YYYY'},
                                    format='%d.%m.%Y',
                                    default=date.today())
+
+
+# Criação de Condicionador de Ar
+class FormCriarCondicionadorAr(FormBase):
+    tombamento = IntegerField('Tombamento', validators=[NumberRange(0)])
+
+    classificacao = Select2Field('Classificação', 
+                                 choices=[('Split', 'Split'),
+                                          ('Janela', 'Janela'),
+                                          ('Teto Aparente', 'Teto Aparente'),
+                                          ('Piso Aparente', 'Piso Aparente')])
+
+    cap_refrigeracao = IntegerField('Capacidade de Refrigeração (Btu/h)',
+                                    validators=[NumberRange(0)])
+
+    pot_nominal = IntegerField('Potência Nominal de Entrada (W)',
+                               validators=[Optional(), NumberRange(0)])
+
+    tensao_alimentacao = Select2Field('Tensão de Alimentação (V)',
+                                      choices=[(220, '220'), (380, '380')],
+                                      coerce=int,
+                                      validators=[InputRequired()])
+
+    eficiencia = Select2Field('Eficiência (Selo Procel)', 
+                                 choices=[('A', 'A'), ('B', 'B'), ('C', 'C'),
+                                          ('D', 'D'), ('E', 'E'), ('F', 'F'),
+                                          ('G', 'G')])
+
+    fabricante = StringField('Fabricante', validators=[Length(1, 64)])
+
+    ambiente = QuerySelectField('Ambiente',
+                                query_factory=lambda: 
+                                    Ambiente.query.order_by(Ambiente.nome).all())
+
+    intervalo_manutencao = IntegerField('Intervalo de Manutenção (Meses)',
+                                        validators=[InputRequired(), NumberRange(0)])
+                                                                               
+    em_uso = BooleanField('Em Uso')
+
+    info_adicional = TextAreaField('Informações Adicionais')                         
+
+
+    def validate_tombamento(self, field):
+        if field.data != 0:
+            if Equipamento.query.filter_by(tombamento=field.data).first():
+                raise ValidationError('Equipamento já cadastrado.')
+
+
+# Edição de Condicionador de Ar
+class FormEditarCondicionadorAr(FormBase):
+    tombamento = IntegerField('Tombamento', validators=[NumberRange(0)])
+
+    classificacao = Select2Field('Classificação', 
+                                 choices=[('Split', 'Split'),
+                                          ('Janela', 'Janela'),
+                                          ('Teto Aparente', 'Teto Aparente'),
+                                          ('Piso Aparente', 'Piso Aparente')])
+
+    cap_refrigeracao = IntegerField('Capacidade de Refrigeração (Btu/h)',
+                                    validators=[NumberRange(0)])
+
+    pot_nominal = IntegerField('Potência Nominal de Entrada (W)',
+                               validators=[Optional(), NumberRange(0)])
+
+    tensao_alimentacao = Select2Field('Tensão de Alimentação (V)',
+                                      choices=[(220, '220'), (380, '380')],
+                                      coerce=int,
+                                      validators=[InputRequired()])
+
+    eficiencia = Select2Field('Eficiência (Selo Procel)', 
+                                 choices=[('A', 'A'), ('B', 'B'), ('C', 'C'),
+                                          ('D', 'D'), ('E', 'E'), ('F', 'F'),
+                                          ('G', 'G')])
+
+    fabricante = StringField('Fabricante', validators=[Length(1, 64)])
+
+    ambiente = QuerySelectField('Ambiente',
+                                query_factory=lambda: 
+                                    Ambiente.query.order_by(Ambiente.nome).all())
+
+    intervalo_manutencao = IntegerField('Intervalo de Manutenção (Meses)',
+                                        validators=[InputRequired(), NumberRange(0)])
+                                                                               
+    em_uso = BooleanField('Em Uso')
+
+    info_adicional = TextAreaField('Informações Adicionais')                         
+
+    manutencoes = QuerySelectMultipleField('Manutenções',
+                                           query_factory=lambda: Manutencao.query.all(),
+                                           allow_blank=True)
+
+    proxima_manutencao = DateField('Próxima Manutenção', widget=DatePickerWidget(),
+                                   render_kw={'data-date-format': 'DD.MM.YYYY'},
+                                   format='%d.%m.%Y',
+                                   default=date.today())
+
+
+    def validate_tombamento(self, field):
+        if field.data != 0:
+            if Equipamento.query.filter_by(tombamento=field.data).first() and \
+               field.data != Equipamento.query.get(request.args.get('id')).tombamento:
+                raise ValidationError('Equipamento já cadastrado.')
 
 
 # Criação de Manutenção

@@ -108,7 +108,7 @@ def formato_relacao_equipamentos(view, context, model, name):
 
     # Gerar lista de botões com links para cada equipamento
     for equip in model.__getattribute__(name).all():
-        tipo = equip.tipo_equipamento.lower().replace(' ', '')
+        tipo = equip.tipo_equipamento.lower().replace(' ', '').replace('de', '')
         tipo = tools.retirar_acentos(tipo, 'minusculo')
 
         html_string += \

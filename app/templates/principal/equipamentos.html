@@ -51,14 +51,10 @@
 			{% for area in centro["mapeamento"] %}
 				centros.push(L.polygon({{ area }}, {color: cores[count_cor%cores.length]}).bindPopup("\
 					<b>{{ centro['objeto_centro'].nome }}</b>\
-					<br>{{ centro['objeto_centro'].campus }}\
-					<br>Departamentos:{% for departamento in centro['lista_departamentos'] %}\
-										{{ departamento.nome }}\
-										{% if departamento == centro['lista_departamentos'][-1] %}\
-											.\
-										{% else %}\
-											,\
-										{% endif %}\
+					<br>{{ centro['objeto_centro'].campus }}<br>\
+					<br><b>Departamentos:</b>\
+					{% for departamento in centro['lista_departamentos'] %}\
+										<br>{{ departamento.nome }}\
 									{% endfor %}"));
 			{% endfor %}
 			count_cor += 1;
@@ -89,7 +85,9 @@
 	    	blocos.push(L.marker({{ bloco["localizacao"] }}, {icon: icone_azulmarinho}).bindPopup("\
 	    		<b>{{ bloco['objeto_bloco'].nome }}</b> \
 	    		<br>{{ bloco['objeto_bloco'].departamento }}\
-	    		<br><a href='{{ url_for('principal.equipamentos_bloco', id=bloco['objeto_bloco'].id) }}'>Equipamentos do bloco</a>\
+	    		<br>{{ bloco['objeto_bloco'].departamento.centro }}\
+	    		<br>{{ bloco['objeto_bloco'].departamento.centro.campus }}\
+	    		<br><a href='{{ url_for('principal.equipamentos_bloco', id=bloco['objeto_bloco'].id) }}'>Visualizar equipamentos</a>\
 	    		"));
 	    {% endfor %}
 		

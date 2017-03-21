@@ -6,15 +6,17 @@
 
 {% block head %}
 	{{ super() }}
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/principal/equipamentos_bloco.css') }}">
 {% endblock %}
 
 
-{% set active_tab = 'none' %}
+{% set active_tab = 'equipamentos' %}
 
 
 {% block page_content %}
 	<div class="page-header">
 		<h1>Equipamentos: {{ bloco.nome }}</h1>
+		<h4>{{ bloco.departamento.nome }} > {{ bloco.departamento.centro.nome }} > {{ bloco.departamento.centro.campus.nome }}</h4>
 	</div>
 
 	{% for (tipo_equipamento, lista_equipamento) in ordem_alfa_dict %}
@@ -26,7 +28,6 @@
 					<th>Tombamento</th>
 					<th>Local</th>
 					<th>Fabricante</th>
-					<th>Em uso</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -35,14 +36,9 @@
 						<td>{{ equipamento.tombamento }}</td>
 						<td>{{ equipamento.ambiente.nome }}</td>
 						<td>{{ equipamento.fabricante }}</td>
-						<td>{{ equipamento.em_uso }}</td>
 					</tr>
 				{% endfor %}
 			</tbody>
 		</table>
-
-		
-
 	{% endfor %}
-
 {% endblock %}

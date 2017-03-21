@@ -34,6 +34,10 @@ class ModelViewBase(ModelView):
     edit_template = 'administracao/editar.html'
     create_template = 'administracao/criar.html'
     
+    # Itens por página
+    page_size = 10
+
+    # Outras permissões
     can_export = True
     can_view_details = True
 
@@ -644,7 +648,7 @@ class ModelViewExtintor(ModelViewCadastrador):
                    'ambiente.nome', 'ambiente.bloco', 'ambiente.bloco.departamento',
                    'ambiente.bloco.departamento.centro',
                    'ambiente.bloco.departamento.centro.campus',
-                   'intervalo_manutencao', 'proxima_manutencao', 'em_uso', 'em_manutencao']
+                   'proxima_manutencao', 'em_uso', 'em_manutencao']
 
     column_default_sort = 'tombamento'
 
@@ -656,7 +660,7 @@ class ModelViewExtintor(ModelViewCadastrador):
                              'ambiente.bloco.departamento.centro.nome'),
                             ('ambiente.bloco.departamento.centro.campus', 
                              'ambiente.bloco.departamento.centro.campus.nome'),
-                            'intervalo_manutencao', 'proxima_manutencao']
+                            'proxima_manutencao']
 
     column_searchable_list = ['tombamento', 'classificacao', 'ambiente.nome',
                               'fabricante', 'ambiente.bloco.nome',
@@ -698,8 +702,6 @@ class ModelViewExtintor(ModelViewCadastrador):
     column_filters.extend(FiltrosStrings(Departamento.nome, 'Departamento'))
     column_filters.extend(FiltrosStrings(Centro.nome, 'Centro'))
     column_filters.extend(FiltrosStrings(Campus.nome, 'Campus'))
-    column_filters.extend(FiltrosInteiros(Extintor.intervalo_manutencao,
-                                          'Intervalo de Manutenção'))
     column_filters.extend(FiltrosDatas(Extintor.proxima_manutencao, 'Próxima Manutenção'))
     column_filters.append(BooleanEqualFilter(Equipamento.em_uso, 'Em Uso'))
     column_filters.append(BooleanEqualFilter(Equipamento.em_manutencao, 'Em Manutenção'))
@@ -710,6 +712,111 @@ class ModelViewExtintor(ModelViewCadastrador):
 
     def __init__(self, *args, **kwargs):
         super(ModelViewExtintor, self).__init__(*args, **kwargs)
+
+        # Consertar geração automática de joins
+
+        self._filter_joins[Bloco.nome] = [Ambiente.__table__, Bloco.__table__]
+
+        self._filter_joins[Departamento.nome] = [Ambiente.__table__, Bloco.__table__,
+                                                 Departamento.__table__]
+
+        self._filter_joins[Centro.nome] = [Ambiente.__table__, Bloco.__table__,
+                                           Departamento.__table__, Centro.__table__]
+
+        self._filter_joins[Campus.nome] = [Ambiente.__table__, Bloco.__table__,
+                                           Departamento.__table__,Centro.__table__,
+                                           Campus.__table__]
+
+
+    # Após criação de um novo equipamento, redirecionar para criação de sua
+    # manutenção inicial
+    def get_save_return_url(self, model, is_created):
+        if is_created and not model.manutencoes.all():
+            return url_for('manutencao.manutencao_inicial', id=model.id)
+        
+        # Caso haja apenas edição, redirecionar para view de listagem
+        return self.get_url('.index_view')
+
+
+# Condicionadores de Ar
+class ModelViewCondicionadorAr(ModelViewCadastrador):
+    column_list = ['tombamento', 'classificacao', 'cap_refrigeracao', 'pot_nominal',
+                   'tensao_alimentacao', 'eficiencia', 'fabricante', 
+                   'ambiente.nome', 'ambiente.bloco', 'ambiente.bloco.departamento',
+                   'ambiente.bloco.departamento.centro',
+                   'ambiente.bloco.departamento.centro.campus',
+                   'proxima_manutencao', 'em_uso', 'em_manutencao']
+
+    column_default_sort = 'tombamento'
+
+    column_sortable_list = ['tombamento', 'classificacao', 'cap_refrigeracao', 'pot_nominal',
+                            'tensao_alimentacao', 'eficiencia', 'fabricante',
+                            'ambiente.nome', ('ambiente.bloco', 'ambiente.bloco.nome'),
+                            ('ambiente.bloco.departamento', 
+                             'ambiente.bloco.departamento.nome'),
+                            ('ambiente.bloco.departamento.centro', 
+                             'ambiente.bloco.departamento.centro.nome'),
+                            ('ambiente.bloco.departamento.centro.campus', 
+                             'ambiente.bloco.departamento.centro.campus.nome'),
+                            'proxima_manutencao']
+
+    column_searchable_list = ['tombamento', 'classificacao', 'ambiente.nome',
+                              'fabricante', 'ambiente.bloco.nome',
+                              'ambiente.bloco.departamento.nome',
+                              'ambiente.bloco.departamento.centro.nome',
+                              'ambiente.bloco.departamento.centro.campus.nome']
+
+    column_details_list = ['tombamento', 'tipo_equipamento', 'categoria_equipamento',
+                           'classificacao', 'cap_refrigeracao', 'pot_nominal', 'tensao_alimentacao',
+                           'eficiencia', 'fabricante', 'ambiente.nome', 'ambiente.bloco',
+                           'ambiente.bloco.departamento', 'ambiente.bloco.departamento.centro',
+                           'ambiente.bloco.departamento.centro.campus',
+                           'info_adicional', 'intervalo_manutencao',
+                           'proxima_manutencao', 'manutencoes', 'em_uso', 'em_manutencao',
+                           'inicio_manutencao']
+
+    column_labels = {'tipo_equipamento': 'Tipo',
+                     'categoria_equipamento': 'Categoria',
+                     'classificacao': 'Classificação',
+                     'cap_refrigeracao': 'Cap. de Refrigeração',
+                     'pot_nominal': 'Pot. Nominal',
+                     'tensao_alimentacao': 'Tensão de Alimentação',
+                     'eficiencia': 'Eficiência',
+                     'ambiente.nome': 'Ambiente',
+                     'ambiente.bloco': 'Bloco',
+                     'ambiente.bloco.departamento': 'Departamento',
+                     'ambiente.bloco.departamento.centro': 'Centro',
+                     'ambiente.bloco.departamento.centro.campus': 'Campus',
+                     'intervalo_manutencao': 'Intervalo de Manutenção',
+                     'manutencoes': 'Manutenções',
+                     'proxima_manutencao': 'Próxima Manutenção',
+                     'info_adicional': 'Informações Adicionais',
+                     'em_manutencao': 'Em Manutenção',
+                     'inicio_manutencao': 'Início da Manutenção'}
+
+    column_formatters = dict(manutencoes=typefmt.formato_relacao_manutencoes)
+
+    column_filters = FiltrosStrings(CondicionadorAr.classificacao, 'Classificação')
+    column_filters.extend(FiltrosInteiros(CondicionadorAr.cap_refrigeracao, 'Cap. Refrigeração'))
+    column_filters.extend(FiltrosInteiros(CondicionadorAr.pot_nominal, 'Pot. Nominal'))
+    column_filters.extend(FiltrosInteiros(CondicionadorAr.tensao_alimentacao, 'Tensão de Alimentação'))
+    column_filters.extend(FiltrosStrings(CondicionadorAr.eficiencia, 'Eficiência'))
+    column_filters.extend(FiltrosStrings(CondicionadorAr.fabricante, 'Fabricante'))
+    column_filters.extend(FiltrosStrings(Ambiente.nome, 'Ambiente'))
+    column_filters.extend(FiltrosStrings(Bloco.nome, 'Bloco'))
+    column_filters.extend(FiltrosStrings(Departamento.nome, 'Departamento'))
+    column_filters.extend(FiltrosStrings(Centro.nome, 'Centro'))
+    column_filters.extend(FiltrosStrings(Campus.nome, 'Campus'))
+    column_filters.extend(FiltrosDatas(CondicionadorAr.proxima_manutencao, 'Próxima Manutenção'))
+    column_filters.append(BooleanEqualFilter(Equipamento.em_uso, 'Em Uso'))
+    column_filters.append(BooleanEqualFilter(Equipamento.em_manutencao, 'Em Manutenção'))
+
+    create_form = FormCriarCondicionadorAr
+    edit_form = FormEditarCondicionadorAr
+
+
+    def __init__(self, *args, **kwargs):
+        super(ModelViewCondicionadorAr, self).__init__(*args, **kwargs)
 
         # Consertar geração automática de joins
 
@@ -973,6 +1080,9 @@ admin.add_view(ModelViewEquipamento(Equipamento, db.session,
 
 admin.add_view(ModelViewExtintor(Extintor, db.session,
                                  name='Extintores', category='Equipamentos'))
+
+admin.add_view(ModelViewCondicionadorAr(CondicionadorAr, db.session,
+                                 name='Condicionadores de Ar', category='Equipamentos'))
 
 # Manutenções
 

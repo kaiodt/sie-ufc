@@ -409,10 +409,12 @@ class SubestacaoAbrigada(Ambiente):
         self.tipo = 'Subestação Abrigada'
 
     def __repr__(self):
-        return '<Subestação Abrigada: %s [%s]>' % (self.nome, self.campus.nome)
+        return '<Subestação Abrigada: %s [%s]>' % \
+            (self.nome, self.bloco.departamento.centro.campus.nome)
 
     def __str__(self):
-        return '%s [%s]' % (self.nome, self.campus.nome)
+        return '%s [%s]' % \
+            (self.nome, self.bloco.departamento.centro.campus.nome)
 
 
 # Subestações Aéreas (Subclasse de Ambientes)
@@ -430,10 +432,12 @@ class SubestacaoAerea(Ambiente):
         self.tipo = 'Subestação Aérea'
 
     def __repr__(self):
-        return '<Subestação Aérea: %s [%s]>' % (self.nome, self.campus.nome)
+        return '<Subestação Aérea: %s [%s]>' % \
+            (self.nome, self.bloco.departamento.centro.campus.nome)
 
     def __str__(self):
-        return '%s [%s]' % (self.nome, self.campus.nome)
+        return '%s [%s]' % \
+            (self.nome, self.bloco.departamento.centro.campus.nome)
 
 
 # Equipamentos
@@ -484,6 +488,26 @@ class Extintor(Equipamento):
         super(Extintor, self).__init__(**kwargs)
         self.tipo_equipamento = 'Extintor'
         self.categoria_equipamento = 'Combate a Incêndio'
+
+
+# Condicionadores de Ar (Subclasse de Equipamentos)
+class CondicionadorAr(Equipamento):
+    __tablename__ = 'condicionadores_ar'
+    
+    id = db.Column(db.Integer, db.ForeignKey('equipamentos.id'), primary_key=True)
+    classificacao = db.Column(db.String(64))    # Janela, split, teto, ...
+    pot_nominal = db.Column(db.Integer)         # Em W (valor inteiro)
+    cap_refrigeracao = db.Column(db.Integer)    # Em Btu/h (valor inteiro)
+    tensao_alimentacao = db.Column(db.Integer)  # Em V (valor inteiro)
+    eficiencia = db.Column(db.String(1))        # Selo Procel (A, B, C, D, E, F, G)
+
+    __mapper_args__ = { 'polymorphic_identity': u'Condicionador de Ar' }
+
+
+    def __init__(self, **kwargs):
+        super(CondicionadorAr, self).__init__(**kwargs)
+        self.tipo_equipamento = 'Condicionador de Ar'
+        self.categoria_equipamento = 'Equipamento Elétrico'
 
 
 # Manutenções

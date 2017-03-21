@@ -111,14 +111,18 @@ def equipamentos_bloco():
     bloco = Bloco.query.get(id_bloco)
     ambientes = bloco.ambientes
     local_equipamentos = []
+
     for ambiente in ambientes:
         local_equipamentos.extend(ambiente.equipamentos)
+
     dict_local_equipamentos = {}    # dicionário com a key como o tipo do equipamento e seu valor a lista de equipamentos
+
     for equipamento in local_equipamentos:
-        if equipamento.tipo_equipamento in dict_local_equipamentos:    # se o tipo de equipamento já possui uma key no dicionário
-            dict_local_equipamentos[equipamento.tipo_equipamento].append(equipamento) # o equipamento é adicionado à lista referente à key
-        else:
-            dict_local_equipamentos[equipamento.tipo_equipamento] = [equipamento] # se não crio uma lista começando com o equipamento em questão
+        if equipamento.em_uso:  # considerando apenas equipamentos em uso
+            if equipamento.tipo_equipamento in dict_local_equipamentos:    # se o tipo de equipamento já possui uma key no dicionário
+                dict_local_equipamentos[equipamento.tipo_equipamento].append(equipamento) # o equipamento é adicionado à lista referente à key
+            else:
+                dict_local_equipamentos[equipamento.tipo_equipamento] = [equipamento] # se não crio uma lista começando com o equipamento em questão
 
     ordem_alfa_dict = sorted(dict_local_equipamentos.iteritems())   # lista de tuples no formato (key, lista_equipamentos)
                                                                     # com keys em ordem alfabética
@@ -180,7 +184,7 @@ def manutencoes_agendadas():
     page = request.args.get('page', 1, type=int)
 
     pagination = equip_filtrados_query.order_by(Equipamento.proxima_manutencao).paginate(
-        page, per_page=5, error_out=False)
+        page, per_page=10, error_out=False)
 
     # Lista de equipamentos após paginação
 
