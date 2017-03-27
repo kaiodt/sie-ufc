@@ -1,6 +1,6 @@
 /*
 ################################################################################
-## SIE - UFC 
+## SICEM - UFC 
 ################################################################################
 ## Estilo Base
 ################################################################################
@@ -207,8 +207,25 @@ nav {
   box-shadow: none;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 550px) {
   .app-header span {
     font-size: 15px;
   }
+}
+
+@media (max-width: 380px) {
+  .app-header span {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 350px) {
+  .app-header span {
+    font-size: 10px;
+  }
+}
+
+.footer a {
+  float: right;
+  text-decoration: none;
 }

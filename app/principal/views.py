@@ -1,15 +1,17 @@
 # coding: utf-8
 
 ################################################################################
-## SIE - UFC
+## SICEM - UFC
 ################################################################################
 ## Views do Blueprint Principal
 ################################################################################
 
 from datetime import date
 from flask import render_template, redirect, url_for, request
+from flask_login import login_required
 
 from . import principal
+from .filters import *
 from ..models import *
 from shapely import wkb     # para converter na view function 'equipamentos'
 
@@ -23,9 +25,9 @@ def home():
     return render_template('principal/home.html')
 
 
-# Página de Equipamentos
-@principal.route('/equipamentos')
-def equipamentos():
+# Página do Mapa
+@principal.route('/mapa')
+def mapa():
     # Pegando do banco de dados todos os elementos que serão inseridos no mapa
     blocos = Bloco.query.all()
     subestacoes_abrigadas = SubestacaoAbrigada.query.all()
@@ -96,7 +98,7 @@ def equipamentos():
                 })
 
 
-    return render_template('principal/equipamentos.html', 
+    return render_template('principal/mapa.html', 
                             lista_blocos = lista_blocos,
                             lista_subestacoes_abrigadas = lista_subestacoes_abrigadas,
                             lista_subestacoes_aereas = lista_subestacoes_aereas,
@@ -104,8 +106,9 @@ def equipamentos():
                             lista_campi = lista_campi)
 
 
-# Página de Equipamentos de um Bloco
+# Página de Equipamentos de um Bloco (Restrita a Usuários)
 @principal.route('/equipamentos/bloco')
+@login_required
 def equipamentos_bloco():
     id_bloco = request.args.get('id')
     bloco = Bloco.query.get(id_bloco)
@@ -130,21 +133,120 @@ def equipamentos_bloco():
                         bloco = bloco, ordem_alfa_dict = ordem_alfa_dict)
 
 
-# Página de Controle de Manutenções (Aba Manutenções Abertas)
-@principal.route('/manutencoes-abertas')
-def manutencoes_abertas():
+# Página de Equipamentos
+@principal.route('/equipamentos')
+@login_required
+def equipamentos():
     # Query de equipamentos (adicionando joins de outras tabelas)
+
     equip_query = Equipamento.query.join(Ambiente, Bloco, Departamento, Centro, Campus)
 
     # Query de equipamentos em uso
+
+    equip_em_uso_query = equip_query.filter(Equipamento.em_uso==True)
+
+    # Definição dos filtros que podem ser aplicados
+
+    filtros = FiltrosOpcoes(equip_em_uso_query, Equipamento.tipo_equipamento,
+                            u'Tipo')
+    filtros.extend(FiltrosOpcoes(equip_em_uso_query, Equipamento.categoria_equipamento,
+                                 u'Categoria'))
+    filtros.extend(FiltrosOpcoes(equip_em_uso_query, Ambiente.nome,
+                                 u'Ambiente'))
+    filtros.extend(FiltrosOpcoes(equip_em_uso_query, Bloco.nome,
+                                 u'Bloco'))
+    filtros.extend(FiltrosOpcoes(equip_em_uso_query, Departamento.nome,
+                                 u'Departamento'))
+    filtros.extend(FiltrosOpcoes(equip_em_uso_query, Centro.nome,
+                                 u'Centro'))
+    filtros.extend(FiltrosOpcoes(equip_em_uso_query, Campus.nome,
+                                 u'Campus'))
+
+    # Criação dos grupos de filtros e dicionário de indexação dos filtros
+
+    grupos_filtros, indice_filtros = agrupar_filtros(filtros)
+
+    # Processamento dos grupos de filtros para exibição no template
+
+    grupos_template = grupos_filtros_template(grupos_filtros)
+
+    # Filtros selecionados (a partir da query string)
+
+    filtros_ativos = filtros_selecionados(request, indice_filtros)
+
+    # Aplicação dos filtros
+
+    equip_filtrados_query = aplicar_filtros(equip_em_uso_query, 
+                                            filtros, filtros_ativos)
+
+    # Paginação dos resultados
+
+    page = request.args.get('page', 1, type=int)
+
+    pagination = equip_filtrados_query.paginate(page, per_page=10, error_out=False)
+
+    # Lista de equipamentos após paginação
+
+    equip_filtrados = pagination.items
+
+    return render_template('principal/equipamentos.html',
+                           equipamentos=equip_filtrados,
+                           pagination=pagination,
+                           filtros=filtros,
+                           filter_groups=grupos_template,
+                           active_filters=filtros_ativos,
+                           url_inicial=url_for('principal.equipamentos'))
+
+
+# Página de Controle de Manutenções (Restrita a Usuários)
+# Aba Manutenções Abertas
+@principal.route('/manutencoes-abertas')
+@login_required
+def manutencoes_abertas():
+    # Query de equipamentos (adicionando joins de outras tabelas)
+
+    equip_query = Equipamento.query.join(Ambiente, Bloco, Departamento, Centro, Campus)
+
+    # Query de equipamentos em uso
+
     equip_em_uso_query = equip_query.filter(Equipamento.em_uso==True)
 
     # Query de equipamentos em uso com manutenção aberta
+
     equip_em_manutencao_query = equip_em_uso_query.filter(Equipamento.em_manutencao==True)
 
-    ##### Aqui serão aplicados outros filtros #####
+    # Definição dos filtros que podem ser aplicados
 
-    equip_filtrados_query = equip_em_manutencao_query   # Sem filtros por enquanto
+    filtros = FiltrosOpcoes(equip_em_manutencao_query, Equipamento.tipo_equipamento,
+                            u'Tipo de Equipamento')
+    filtros.extend(FiltrosOpcoes(equip_em_manutencao_query, Ambiente.nome,
+                                 u'Ambiente'))
+    filtros.extend(FiltrosOpcoes(equip_em_manutencao_query, Bloco.nome,
+                                 u'Bloco'))
+    filtros.extend(FiltrosOpcoes(equip_em_manutencao_query, Departamento.nome,
+                                 u'Departamento'))
+    filtros.extend(FiltrosOpcoes(equip_em_manutencao_query, Centro.nome,
+                                 u'Centro'))
+    filtros.extend(FiltrosOpcoes(equip_em_manutencao_query, Campus.nome,
+                                 u'Campus'))
+    filtros.extend(FiltrosDatas(Equipamento.inicio_manutencao, u'Data de Abertura'))
+
+    # Criação dos grupos de filtros e dicionário de indexação dos filtros
+
+    grupos_filtros, indice_filtros = agrupar_filtros(filtros)
+
+    # Processamento dos grupos de filtros para exibição no template
+
+    grupos_template = grupos_filtros_template(grupos_filtros)
+
+    # Filtros selecionados (a partir da query string)
+
+    filtros_ativos = filtros_selecionados(request, indice_filtros)
+
+    # Aplicação dos filtros
+
+    equip_filtrados_query = aplicar_filtros(equip_em_manutencao_query, 
+                                            filtros, filtros_ativos)
 
     # Paginação dos resultados (ordenados por data de abertura)
 
@@ -160,24 +262,62 @@ def manutencoes_abertas():
     return render_template('principal/manutencoes_abertas.html',
                            equip_man_aberta=equip_filtrados,
                            data_hoje=date.today(),
-                           pagination=pagination)
+                           pagination=pagination,
+                           filtros=filtros,
+                           filter_groups=grupos_template,
+                           active_filters=filtros_ativos,
+                           url_inicial=url_for('principal.manutencoes_abertas'))
 
 
-# Página de Controle de Manutenções (Aba Manutenções Agendadas)
+# Página de Controle de Manutenções (Restrita a Usuários)
+# Aba Manutenções Agendadas
 @principal.route('/manutencoes-agendadas')
+@login_required
 def manutencoes_agendadas():
     # Query de equipamentos (adicionando joins de outras tabelas)
+
     equip_query = Equipamento.query.join(Ambiente, Bloco, Departamento, Centro, Campus)
 
     # Query de equipamentos em uso
+
     equip_em_uso_query = equip_query.filter(Equipamento.em_uso==True)
 
     # Query de equipamentos em uso com manutenção agendada (fora de manutenção)
+
     equip_man_agendada_query = equip_em_uso_query.filter(Equipamento.em_manutencao==False)
 
-    ##### Aqui serão aplicados outros filtros #####
+    # Definição dos filtros que podem ser aplicados
 
-    equip_filtrados_query = equip_man_agendada_query   # Sem filtros por enquanto
+    filtros = FiltrosOpcoes(equip_man_agendada_query, Equipamento.tipo_equipamento,
+                            u'Tipo de Equipamento')
+    filtros.extend(FiltrosOpcoes(equip_man_agendada_query, Ambiente.nome,
+                                 u'Ambiente'))
+    filtros.extend(FiltrosOpcoes(equip_man_agendada_query, Bloco.nome,
+                                 u'Bloco'))
+    filtros.extend(FiltrosOpcoes(equip_man_agendada_query, Departamento.nome,
+                                 u'Departamento'))
+    filtros.extend(FiltrosOpcoes(equip_man_agendada_query, Centro.nome,
+                                 u'Centro'))
+    filtros.extend(FiltrosOpcoes(equip_man_agendada_query, Campus.nome,
+                                 u'Campus'))
+    filtros.extend(FiltrosDatas(Equipamento.proxima_manutencao, u'Próxima Manutenção'))
+
+    # Criação dos grupos de filtros e dicionário de indexação dos filtros
+
+    grupos_filtros, indice_filtros = agrupar_filtros(filtros)
+
+    # Processamento dos grupos de filtros para exibição no template
+
+    grupos_template = grupos_filtros_template(grupos_filtros)
+
+    # Filtros selecionados (a partir da query string)
+
+    filtros_ativos = filtros_selecionados(request, indice_filtros)
+
+    # Aplicação dos filtros
+
+    equip_filtrados_query = aplicar_filtros(equip_man_agendada_query, 
+                                            filtros, filtros_ativos)
 
     # Paginação dos resultados (ordenados por data da próxima manutenção)
 
@@ -193,5 +333,9 @@ def manutencoes_agendadas():
     return render_template('principal/manutencoes_agendadas.html',
                            equip_man_agendada=equip_filtrados,
                            data_hoje=date.today(),
-                           pagination=pagination)
+                           pagination=pagination,
+                           filtros=filtros,
+                           filter_groups=grupos_template,
+                           active_filters=filtros_ativos,
+                           url_inicial=url_for('principal.manutencoes_agendadas'))
 

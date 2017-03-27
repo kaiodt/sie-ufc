@@ -1,6 +1,6 @@
 /*
 ################################################################################
-## SIE - UFC 
+## SICEM - UFC 
 ################################################################################
 ## Estilos Base - Painel de Administração
 ################################################################################
@@ -96,8 +96,33 @@ body {
   box-shadow: none;
 }
 
-@media (max-width: 480px) {
+button.navbar-toggle {
+  margin-left: 10px;
+}
+
+#admin-navbar-collapse ul li {
+  margin-left: 10px;
+}
+
+@media (max-width: 550px) {
   .app-header span {
     font-size: 15px;
   }
+}
+
+@media (max-width: 380px) {
+  .app-header span {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 350px) {
+  .app-header span {
+    font-size: 10px;
+  }
+}
+
+.footer a {
+  float: right;
+  text-decoration: none;
 }

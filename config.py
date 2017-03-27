@@ -1,7 +1,7 @@
 # coding: utf-8
 
 ################################################################################
-## SIE - UFC
+## SICEM - UFC
 ################################################################################
 ## Arquivo de Configuração
 ################################################################################
@@ -30,7 +30,7 @@ class Config:
     MAIL_USE_TLS = True
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME') or 'sie.ufc@gmail.com'  # !!!!!!!
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD') or 'InfoEletricas'      # !!!!!!!
-    MAIL_SENDER = os.environ.get('MAIL_SENDER') or 'SIE-UFC <sie.ufc@gmail.com>'
+    MAIL_SENDER = os.environ.get('MAIL_SENDER') or 'SICEM-UFC <sie.ufc@gmail.com>'
 
     MAPBOX_MAP_ID = 'mapbox.streets'
     MAPBOX_ACCESS_TOKEN = \

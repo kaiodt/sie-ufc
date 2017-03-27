@@ -1,7 +1,7 @@
 # coding: utf-8
 
 ################################################################################
-## SIE - UFC
+## SICEM - UFC
 ################################################################################
 ## Arquivo de Inicialização dos Blueprints de Administração
 ################################################################################
@@ -28,6 +28,6 @@ class HomeView(AdminIndexView):
 
 
 admin = Admin(index_view=HomeView(url='/administracao'))
-admin.name = 'SIE-UFC'
+admin.name = 'SICEM-UFC'
 admin.template_mode = 'bootstrap3'
 
