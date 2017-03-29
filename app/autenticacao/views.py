@@ -15,6 +15,7 @@ from .. import db
 from .forms import *
 from ..models import Usuario
 from ..util.email import enviar_email
+from ..util.decorators import *
 
 
 ########## Rotas ##########
@@ -40,7 +41,13 @@ def login():
         usuario = Usuario.query.filter_by(email=form.email.data).first()
 
         if usuario and usuario.verificar_senha(form.senha.data):
+            # Usuário não verificado
+            if not usuario.verificado:
+                return render_template('autenticacao/nao_verificado.html')
+
+            # Autenticar usuário
             login_user(usuario, form.lembrar.data)
+
             return redirect(request.args.get('next') or url_for('principal.home'))
 
         flash('Email ou senha incorretos.', 'danger')
@@ -62,19 +69,111 @@ def cadastro_usuario():
     form = FormCadastroUsuario()
 
     if form.validate_on_submit():
-        usuario = Usuario(email=form.email.data,
-                          nome=form.nome.data,
-                          senha=form.senha.data)
-        db.session.add(usuario)
+        # Adicionar novo usuário no banco de dados
+        # (não verificado, não confirmado)
+        novo_usuario = Usuario(email=form.email.data,
+                               nome=form.nome.data,
+                               senha=form.senha.data)
+
+        db.session.add(novo_usuario)
         db.session.commit()
-        token = usuario.gerar_token_confirmacao()
-        enviar_email(usuario.email, 'Confirme Seu Cadastro',
-                     'autenticacao/email/confirmacao', usuario=usuario, token=token)
-        flash('Um email de confirmação foi enviado. Confira a sua caixa de entrada.', 'info')
+
+        # Enviar email para administradores solicitando verificação de
+        # novo usuário
         
+        lista_adms = Usuario.listar_administradores()
+        destinatarios = [usuario.email for usuario in lista_adms]
+
+        enviar_email(destinatarios,
+                     'Verificação de Novo Usuário',
+                     'autenticacao/email/verificacao_novo_usuario',
+                     novo_usuario=novo_usuario)
+        
+        flash('Seu cadastro foi recebido e será analisado pelos administradores.', 'info')
+
         return redirect(url_for('principal.home'))
 
     return render_template('autenticacao/cadastro_usuario.html', form=form)
+
+
+# Verificação de novo usuário
+@autenticacao.route('/verificacao', methods=['GET', 'POST'])
+@login_required
+@restrito_administrador
+def verificacao():
+    # Identificando usuário
+    id_usuario = request.args.get('id')
+    usuario = Usuario.query.get(id_usuario)
+
+    # Identificação inválida
+    if usuario is None:
+        flash('Usuário não existe ou foi negado!', 'danger')
+        return redirect(url_for('principal.home'))
+
+    # Usuário já verificado
+    if usuario.verificado:
+        flash('Usuário já verificado.', 'warning')
+        return redirect(url_for('principal.home'))
+
+    # Formulário para verificação do usuário, onde pode também
+    # ser definido seu cargo (nome e email já são preenchidos)
+    form = FormVerificarUsuario()
+    form.nome.data = usuario.nome
+    form.email.data = usuario.email
+
+    if form.validate_on_submit():
+        # Usuário é verificado
+        cargo = Cargo.query.filter_by(nome=form.cargo.data).first()
+        usuario.cargo = cargo
+        usuario.verificado = True
+
+        db.session.add(usuario)
+        db.session.commit()
+
+        # Enviar email para o usuário, para que confirme o email cadastrado
+
+        token = usuario.gerar_token_confirmacao()
+
+        enviar_email(usuario.email, 
+                     'Confirme Seu Cadastro',
+                     'autenticacao/email/confirmacao',
+                     usuario=usuario,
+                     token=token)
+
+        flash('O usuário foi verificado e receberá um email de confirmação.', 'success')
+
+        return redirect(url_for('principal.home'))
+
+    return render_template('autenticacao/verificacao_usuario.html', form=form)
+
+
+# Verificação de novo usuário negada pelo administrador
+@autenticacao.route('/verificacao-negada')
+@login_required
+@restrito_administrador
+def verificacao_negada():
+    # Identificando usuário
+    id_usuario = request.args.get('id')
+    usuario = Usuario.query.get(id_usuario)
+
+    # Identificação inválida
+    if usuario is None:
+        flash('Usuário não existe ou foi negado!', 'danger')
+        return redirect(url_for('principal.home'))
+
+    # Enviar email para o usuário, informando negação da verificação
+    enviar_email(usuario.email, 
+                 'Cadastro não Autorizado',
+                 'autenticacao/email/verificacao_negada',
+                 usuario=usuario)
+
+    # Excluir usuário do banco de dados
+    db.session.delete(usuario)
+    db.session.commit()
+
+    flash('A verificação do usuário foi cancelada.', 'info')
+
+    return redirect(url_for('principal.home'))
 
 
 # Usuário Não Confirmado

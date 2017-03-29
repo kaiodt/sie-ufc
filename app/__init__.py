@@ -55,6 +55,13 @@ def criar_app(configuracao):
     mail.init_app(app)
     babel.init_app(app)
 
+    # Habilitar SSL, caso esteja na configuração de produção
+
+    if not app.debug and not app.testing and not app.config['SSL_DISABLE']:
+        from flask_sslify import SSLify
+        sslify = SSLify(app)
+
+
     ##### Blueprints #####
 
     # Principal

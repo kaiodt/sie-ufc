@@ -21,7 +21,7 @@ from . import db, login_manager
 
 
 class Permissao:
-    SOLICITAR = 0x01
+    VISUALIZAR = 0x01
     CADASTRAR = 0x02
     ADMINISTRAR = 0xff
 
@@ -35,7 +35,7 @@ class Cargo(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(36), index=True, unique=True, nullable=False)
-    permissoes = db.Column(db.Integer, unique=True, nullable=False)
+    permissoes = db.Column(db.Integer, nullable=False)
     padrao = db.Column(db.Boolean, default=False, index=True, nullable=False)
     usuarios = db.relationship('Usuario', backref='cargo', lazy='dynamic')
 
@@ -44,8 +44,9 @@ class Cargo(db.Model):
     @staticmethod
     def criar_cargos():
         cargos = {
-            u'Usuário': (Permissao.SOLICITAR, True),
+            u'Usuário': (Permissao.VISUALIZAR, True),
             u'Cadastrador': (Permissao.CADASTRAR, False),
+            u'Desenvolvedor': (Permissao.ADMINISTRAR, False),
             u'Administrador': (Permissao.ADMINISTRAR, False)
         }
 
@@ -75,32 +76,33 @@ class Usuario(UserMixin, db.Model):
     nome = db.Column(db.String(64), index=True, nullable=False)
     email = db.Column(db.String(64), index=True, unique=True, nullable=False)
     senha_hash = db.Column(db.String(128))
+    verificado = db.Column(db.Boolean, default=False)
     confirmado = db.Column(db.Boolean, default=False)
     id_cargo = db.Column(db.Integer, db.ForeignKey('cargos.id'))
 
 
     def __init__(self, **kwargs):
         super(Usuario, self).__init__(**kwargs)
-        # Definição do cargo
+        
+        # Definindo dados padrão para novos usuários
         if self.cargo is None:
-            if self.email == current_app.config['ADMIN_EMAIL']:
-                # Administrador
-                self.cargo = Cargo.query.filter_by(permissoes=Permissao.ADMINISTRAR).first()
-            else:
-                # Usuário comum (padrão)
-                self.cargo = Cargo.query.filter_by(padrao=True).first()
-
-    # Método para criar o primeiro administrador (!!!!!!!!)
+            self.cargo = Cargo.query.filter_by(padrao=True).first()
+            self.verificado = False
+            self.confirmado = False
+                
+    # Método para criar o primeiro administrador, caso não haja um ainda
     @staticmethod
     def criar_administrador():
-        administrador = Usuario(email=current_app.config['ADMIN_EMAIL'])
-        administrador.nome = 'Kaio Douglas'
-        administrador.senha = '123456'
-        administrador.confirmado = True
-        administrador.cargo = Cargo.query.filter_by(nome='Administrador').first()
+        if not Usuario.query.join(Cargo).filter(Cargo.nome=='Administrador').first():
+            administrador = Usuario(email=current_app.config['ADMIN_EMAIL'])
+            administrador.nome = 'Administrador'
+            administrador.senha = current_app.config['ADMIN_SENHA']
+            administrador.verificado = True
+            administrador.confirmado = True
+            administrador.cargo = Cargo.query.filter_by(nome='Administrador').first()
 
-        db.session.add(administrador)
-        db.session.commit()
+            db.session.add(administrador)
+            db.session.commit()
 
     # Bloquear leitura da senha
     @property
@@ -192,13 +194,23 @@ class Usuario(UserMixin, db.Model):
         return self.cargo is not None and \
             (self.cargo.permissoes & permissoes) == permissoes
 
-    # Testa se o usuário é administrador
+    # Testa se o usuário é administrador ou desenvolvedor
     def administrador(self):
         return self.autorizado(Permissao.ADMINISTRAR)
 
     # Testa se o usuário é cadastrador
     def cadastrador(self):
         return self.autorizado(Permissao.CADASTRAR)    
+
+    # Gera lista de administradores
+    @staticmethod
+    def listar_administradores():
+        return Usuario.query.join(Cargo).filter(Cargo.nome=='Administrador').all()
+
+    # Gera lista de desenvolvedores
+    @staticmethod
+    def listar_desenvolvedores():
+        return Usuario.query.join(Cargo).filter(Cargo.nome=='Desenvolvedor').all()
 
     def __repr__(self):
         return '<Usuário: %s [%s]>' % (self.nome, self.cargo.nome)
@@ -363,13 +375,16 @@ class AmbienteInterno(Ambiente):
         self.tipo = 'Ambiente Interno'
 
     def __repr__(self):
-        return '<Ambiente Interno: %s [%s - %s]>' % \
-            (self.nome, self.bloco.nome, self.bloco.departamento.nome)
+        return '<Ambiente Interno: %s [%s - %s - %s - %s]>' % \
+            (self.nome, self.bloco.nome, self.bloco.departamento.nome,
+             self.bloco.departamento.centro.nome,
+             self.bloco.departamento.centro.campus.nome)
 
     def __str__(self):
-        return '%s - %s - %s - %s - %s' % \
+        return '%s [%s - %s - %s - %s]' % \
             (self.nome, self.bloco.nome, self.bloco.departamento.nome,
-             self.bloco.departamento.centro.nome, self.bloco.departamento.centro.campus.nome)
+             self.bloco.departamento.centro.nome,
+             self.bloco.departamento.centro.campus.nome)
 
 
 # Ambientes Externos (Subclasse de Ambientes)
@@ -386,12 +401,16 @@ class AmbienteExterno(Ambiente):
         self.tipo = 'Ambiente Externo'
 
     def __repr__(self):
-        return '<Ambiente Externo: %s [%s - %s]>' % \
-            (self.nome, self.bloco.nome, self.bloco.departamento.nome)
+        return '<Ambiente Externo: %s [%s - %s - %s - %s]>' % \
+            (self.nome, self.bloco.nome, self.bloco.departamento.nome,
+             self.bloco.departamento.centro.nome,
+             self.bloco.departamento.centro.campus.nome)
 
     def __str__(self):
-        return '%s [%s - %s]' % \
-            (self.nome, self.bloco.nome, self.bloco.departamento.nome)
+        return '%s [%s - %s - %s - %s]' % \
+            (self.nome, self.bloco.nome, self.bloco.departamento.nome,
+             self.bloco.departamento.centro.nome,
+             self.bloco.departamento.centro.campus.nome)
 
 
 # Subestações Abrigadas (Subclasse de Ambientes)

@@ -18,7 +18,7 @@ from .. import db
 from .forms import *
 from .filters import *
 from ..models import *
-from ..util import tools
+from ..util import email, tools
 
 
 ########## View Base ##########
@@ -85,7 +85,7 @@ class ModelViewCargo(ModelViewAdministrador):
 
 # Usuários
 class ModelViewUsuario(ModelViewAdministrador):
-    column_list = ['nome', 'email', 'cargo', 'confirmado']
+    column_list = ['nome', 'email', 'cargo', 'verificado', 'confirmado']
 
     column_default_sort = 'nome'
 
@@ -93,9 +93,10 @@ class ModelViewUsuario(ModelViewAdministrador):
 
     column_searchable_list = ['nome', 'cargo.nome']
 
-    column_details_list = ['nome', 'email', 'cargo', 'confirmado']
+    column_details_list = ['nome', 'email', 'cargo', 'verificado', 'confirmado']
 
     column_filters = FiltrosStrings(Cargo.nome, 'Cargo')
+    column_filters.append(BooleanEqualFilter(Usuario.verificado, 'Verificado'))
     column_filters.append(BooleanEqualFilter(Usuario.confirmado, 'Confirmado'))
 
     create_form = FormCriarUsuario

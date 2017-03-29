@@ -8,11 +8,12 @@
 
 
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField
+from wtforms import StringField, PasswordField, BooleanField, SelectField, \
+                    SubmitField
 from wtforms import ValidationError
 from wtforms.validators import InputRequired, Email, Length, Regexp, EqualTo
 
-from ..models import Usuario
+from ..models import Usuario, Cargo
 
 
 ########## Formulários ##########
@@ -60,6 +61,23 @@ class FormCadastroUsuario(FormBase):
     def validate_email(self, field):
         if Usuario.query.filter_by(email=field.data).first():
             raise ValidationError('Email já cadastrado.')
+
+
+# Verificação de Usuário
+class FormVerificarUsuario(FormBase):
+    nome = StringField('Nome', render_kw={'disabled': 'disabled'})
+
+    email = StringField('Email', render_kw={'disabled': 'disabled'})
+
+    cargo = SelectField('Cargo')
+
+    submit = SubmitField('Verificar')
+
+    def __init__(self, *args, **kwargs):
+        super(FormVerificarUsuario, self).__init__(*args, **kwargs)
+
+        self.cargo.choices = \
+            [(cargo.nome, cargo.nome) for  cargo in Cargo.query.all()]
 
 
 # Alteração de Senha

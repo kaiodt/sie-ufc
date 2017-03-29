@@ -26,8 +26,12 @@ def enviar_email_assinc(app, msg):
 # Envio de email
 def enviar_email(para, assunto, template, **kwargs):
     app = current_app._get_current_object()
+
+    if not isinstance(para, list):
+        para = [para]
+
     msg = Message(assunto, sender=app.config['MAIL_SENDER'],
-                  recipients=[para])
+                  recipients=para)
     msg.body = render_template(template + '.txt', **kwargs)
     msg.html = render_template(template + '.html', **kwargs)
 

@@ -49,7 +49,7 @@ class FormEditarCargo(FormBase):
     usuarios = QuerySelectMultipleField('Usuários',
                                         allow_blank=True,
                                         query_factory= lambda: 
-                                            Usuario.query.order_by(Usuario.nome).all())
+                                        Usuario.query.order_by(Usuario.nome).all())
 
 
 # Criação de Usuário
@@ -67,6 +67,8 @@ class FormCriarUsuario(FormBase):
 
     cargo = QuerySelectField('Cargo',
                              query_factory=lambda: Cargo.query.order_by(Cargo.nome).all())
+
+    verificado = BooleanField('Verificado')
 
     confirmado = BooleanField('Confirmado')
 
@@ -89,6 +91,8 @@ class FormEditarUsuario(FormBase):
     cargo = QuerySelectField('Cargo',
                              query_factory=lambda: Cargo.query.order_by(Cargo.nome).all())
 
+    verificado = BooleanField('Verificado')
+    
     confirmado = BooleanField('Confirmado')
 
 

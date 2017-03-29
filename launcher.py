@@ -54,10 +54,26 @@ manager.add_command('shell', Shell(make_context=make_shell_context))
 manager.add_command('db', MigrateCommand)
 
 
+# Comando de deploy da aplicação
+
+@manager.command
+def deploy():
+    from flask_migrate import upgrade
+    from app.models import Cargo, Usuario
+
+    # Migrar banco de dados para última versão
+    upgrade()
+
+    # Cria os cargos dos usuários
+    Cargo.criar_cargos()
+    
+    # Criar administrador
+    Usuario.criar_administrador()
+
+
 ########## Execução da Aplicação ##########
 
 
 if __name__ == '__main__':
     manager.run()
 
-    

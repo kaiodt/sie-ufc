@@ -126,17 +126,17 @@
             </a>
           </li>
           <li {% if active_tab == 'solicitacoes' %} class="active" {% endif %}>
-            <a href="#">
+            <a href="{{ url_for('principal.solicitacoes') }}">
               <i class="fa fa-edit" aria-hidden="true"></i> Solicitações
             </a>
           </li>
           <li {% if active_tab == 'consumo' %} class="active" {% endif %}>
-            <a href="#">
+            <a href="{{ url_for('principal.consumo') }}">
               <i class="fa fa-bar-chart" aria-hidden="true"></i> Consumo
             </a>
           </li>
           <li {% if active_tab == 'contato' %} class="active" {% endif %}>
-            <a href="#">
+            <a href="{{ url_for('principal.contato') }}">
               <i class="fa fa-envelope" aria-hidden="true"></i> Contato
             </a>
           </li>
@@ -175,7 +175,7 @@
       {% block footer %}
         <p>
           © 2017 Universidade Federal do Ceará
-          <a href="#">
+          <a href="{{ url_for('principal.contato', tipo='problema') }}">
             <i class="fa fa-bug" aria-hidden="true"></i>
             Reportar problema
           </a>

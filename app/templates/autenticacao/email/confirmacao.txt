@@ -1,6 +1,6 @@
 Olá {{ usuario.nome }},
 
-Bem vindo ao Sistema de Informações Elétricas da UFC!
+Bem vindo ao Sistema de Controle de Equipamentos e Manutenções da UFC!
 
 Para confirmar seu cadastro, clique no link abaixo:
 

@@ -7,13 +7,15 @@
 ################################################################################
 
 from datetime import date
-from flask import render_template, redirect, url_for, request
+from flask import render_template, redirect, url_for, request, current_app
 from flask_login import login_required
+from shapely import wkb     # para converter na view function 'equipamentos'
 
 from . import principal
 from .filters import *
+from .forms import FormEmailContato
 from ..models import *
-from shapely import wkb     # para converter na view function 'equipamentos'
+from ..util.email import enviar_email
 
 
 ########## Rotas ##########
@@ -338,4 +340,54 @@ def manutencoes_agendadas():
                            filter_groups=grupos_template,
                            active_filters=filtros_ativos,
                            url_inicial=url_for('principal.manutencoes_agendadas'))
+
+
+# Página de Solicitações
+@principal.route('/solicitacoes')
+def solicitacoes():
+    return render_template('principal/solicitacoes.html')
+
+
+# Página de Consumo
+@principal.route('/consumo')
+def consumo():
+    return render_template('principal/consumo.html')
+
+
+# Página de Contato
+@principal.route('/contato', methods=['GET', 'POST'])
+def contato():
+    form_email = FormEmailContato()
+
+    # Caso o usuário tenha clicado no link "Reportar problema",
+    # será redirecionado para a página de contato, e alguns campos
+    # serão preenchidos automaticamente
+    if request.args.get('tipo') == 'problema':
+        form_email.enviar_para.data = 'dev'
+        form_email.assunto.data = 'Problema Técnico'
+
+    if form_email.validate_on_submit():
+        # Baseado no campo "enviar_para", os destinatários da
+        # mensagem são selecionados
+        if form_email.enviar_para.data == 'adm':
+            lista_adms = Usuario.listar_administradores()
+            destinatarios = [usuario.email for usuario in lista_adms]
+                
+        elif form_email.enviar_para.data == 'dev':
+            lista_devs = listar_desenvolvedores()
+            destinatarios = [usuario.email for usuario in lista_devs]
+
+        enviar_email(destinatarios,
+                     form_email.assunto.data,
+                     'principal/email/mensagem',
+                     nome=form_email.nome.data,
+                     email=form_email.email.data,
+                     mensagem=form_email.mensagem.data)
+
+        flash('Email enviado!', 'success')
+
+        return redirect(url_for('principal.contato'))
+
+    return render_template('principal/contato.html',
+                           form_email=form_email)
 
